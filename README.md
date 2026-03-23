@@ -1,17 +1,95 @@
-# blinkchat
+# 💬 ChitChat App
 
-A new Flutter project.
+A modern real-time messaging and calling application built using **Flutter & Dart**, designed to deliver a seamless communication experience similar to popular chat applications.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## 🚀 Features
 
-A few resources to get you started if this is your first Flutter project:
+* 🔐 User Authentication (Login / Signup / OTP)
+* 💬 Real-time 1-to-1 Messaging
+* 🟢 Online / Offline Status
+* ✔️ Message Status (Sent / Delivered / Seen)
+* 📞 Voice Calling (Planned)
+* 🎥 Video Calling (Planned)
+* 🖼️ Media Sharing (Images, Audio) *(Upcoming)*
+* 🔔 Push Notifications *(Upcoming)*
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 🛠️ Tech Stack
+
+* **Frontend:** Flutter (Dart)
+* **Backend:** Firebase / Node.js (Planned)
+* **Database:** Firestore / MongoDB (Planned)
+* **Real-time:** WebSockets / Firebase Realtime DB
+* **Calling:** WebRTC (Planned)
+
+---
+
+## 📂 Project Structure
+
+```
+lib/
+ ├── core/
+ ├── data/
+ ├── features/
+ ├── shared/
+ └── main.dart
+```
+
+---
+
+## 📸 Screenshots
+
+*(Add your app screenshots here)*
+
+---
+
+## ⚙️ Installation & Setup
+
+1. Clone the repository:
+
+```
+git clone https://github.com/mishraji018/ChitChat-app.git
+```
+
+2. Navigate to project folder:
+
+```
+cd ChitChat-app
+```
+
+3. Install dependencies:
+
+```
+flutter pub get
+```
+
+4. Run the app:
+
+```
+flutter run
+```
+
+---
+
+## 🎯 Future Enhancements
+
+* 🔒 End-to-End Encryption
+* 👥 Group Chats
+* 📁 File Sharing
+* 🌙 Dark Mode Optimization
+* ☁️ Cloud Sync
+
+---
+
+## 🤝 Contribution
+
+Contributions are welcome! Feel free to fork this repo and submit a pull request.
+
+---
+
+## 📌 Status
+
+🚧 **This project is currently under development.**
