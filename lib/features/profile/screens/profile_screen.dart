@@ -183,13 +183,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       children: [
         TextField(
           controller: _nameController,
-          decoration: InputDecoration(labelText: 'Name', prefixIcon: const Icon(Icons.person)),
+          decoration: const InputDecoration(labelText: 'Name', prefixIcon: Icon(Icons.person)),
         ),
         const SizedBox(height: 16),
         TextField(
           controller: _bioController,
           maxLength: 139,
-          decoration: InputDecoration(labelText: 'Bio', prefixIcon: const Icon(Icons.info), counterText: ''),
+          decoration: const InputDecoration(labelText: 'Bio', prefixIcon: Icon(Icons.info), counterText: ''),
           maxLines: 2,
         ),
         const SizedBox(height: 24),

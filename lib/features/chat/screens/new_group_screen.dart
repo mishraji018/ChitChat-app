@@ -58,8 +58,11 @@ class NewGroupScreen extends ConsumerWidget {
                   isSelected: isSelected,
                   onTap: () {
                     final newSet = Set<String>.from(selectedIds);
-                    if (isSelected) newSet.remove(contact.id);
-                    else newSet.add(contact.id);
+                    if (isSelected) {
+                      newSet.remove(contact.id);
+                    } else {
+                      newSet.add(contact.id);
+                    }
                     ref.read(selectedContactsProvider.notifier).state = newSet;
                   },
                 );
