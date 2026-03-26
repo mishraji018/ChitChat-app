@@ -1,53 +1,22 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
+# Root gitignore for ChitChat app (Frontend + Backend)
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
+# Frontend (Flutter)
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.metadata
+frontend/build/
+frontend/pubspec.lock
+frontend/ios/Flutter/Generated.xcconfig
+frontend/android/local.properties
+
+# Backend (Node.js)
+backend/node_modules/
+backend/.env
+backend/npm-debug.log*
+
+# Misc
 .idea/
-
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
-.dart_tool/
-.flutter-plugins-dependencies
-.pub-cache/
-.pub/
-/build/
-/coverage/
-
-# Symbolication related
-app.*.symbols
-
-# Obfuscation related
-app.*.map.json
-
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
-
-# Extra Flutter Fix
-android/app/build/
-android/build/
-
-# Logs (important)
-*.txt
-*.log
+.vscode/
+*.iml
+.DS_Store

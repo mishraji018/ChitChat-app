@@ -1,0 +1,46 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+class StorageService {
+  static const FlutterSecureStorage _storage = FlutterSecureStorage();
+
+  static Future<void> saveToken(String token) async {
+    await _storage.write(key: 'auth_token', value: token);
+  }
+
+  static Future<String?> getToken() async {
+    return await _storage.read(key: 'auth_token');
+  }
+
+  static Future<void> saveRefreshToken(String token) async {
+    await _storage.write(key: 'refresh_token', value: token);
+  }
+
+  static Future<String?> getRefreshToken() async {
+    return await _storage.read(key: 'refresh_token');
+  }
+
+  static Future<void> saveUser(String userJson) async {
+    await _storage.write(key: 'user_data', value: userJson);
+  }
+
+  static Future<String?> getUser() async {
+    return await _storage.read(key: 'user_data');
+  }
+
+  static Future<void> clearAll() async {
+    await _storage.deleteAll();
+  }
+
+  // --- App Lock PIN (per-user, device-local) ---
+  static Future<void> savePinForUser(String userId, String pin) async {
+    await _storage.write(key: 'app_pin_$userId', value: pin);
+  }
+
+  static Future<String?> getPinForUser(String userId) async {
+    return await _storage.read(key: 'app_pin_$userId');
+  }
+
+  static Future<void> clearPinForUser(String userId) async {
+    await _storage.delete(key: 'app_pin_$userId');
+  }
+}
