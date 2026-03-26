@@ -1,22 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pinput/pinput.dart';
 import '../../../shared/widgets/pink_gradient_button.dart';
-import '../../../data/providers/auth_provider.dart';
-import '../../../data/repositories/auth_repository.dart';
 
-class OtpScreen extends ConsumerStatefulWidget {
+class OtpScreen extends StatefulWidget {
   final String? email;
   const OtpScreen({super.key, this.email});
 
   @override
-  ConsumerState<OtpScreen> createState() => _OtpScreenState();
+  State<OtpScreen> createState() => _OtpScreenState();
 }
 
-class _OtpScreenState extends ConsumerState<OtpScreen> {
+class _OtpScreenState extends State<OtpScreen> {
   final _otpController = TextEditingController();
-  final _repo = AuthRepository();
 
   @override
   void dispose() {
@@ -24,57 +20,20 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     super.dispose();
   }
 
-  Future<void> _verifyOtp() async {
-    final email = widget.email;
-    final otp = _otpController.text.trim();
-
-    if (email == null || otp.length < 6) return;
-
-    final success = await ref.read(authProvider.notifier).verifyOtp(email, otp);
-
-    if (!mounted) return;
-
-    if (success) {
-      context.go('/home/chats');
-    } else {
-      final errorMessage = ref.read(authProvider).errorMessage ?? 'Invalid OTP';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+  void _verifyOtp() {
+    context.go('/home/chats');
   }
 
-  Future<void> _resendOtp() async {
-    final email = widget.email;
-    if (email == null) return;
-
-    final result = await _repo.resendOtp(email: email);
-
-    if (!mounted) return;
-
-    if (result['success']) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('OTP Resent!'), backgroundColor: Colors.green),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message'] ?? 'Failed to resend OTP'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+  void _resendOtp() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('OTP Resent!'), backgroundColor: Colors.green),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final authState = ref.watch(authProvider);
-    final isLoading = authState.status == AuthStatus.loading;
 
     final defaultPinTheme = PinTheme(
       width: 48,
@@ -154,30 +113,27 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                 submittedPinTheme: submittedPinTheme,
                 pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
                 showCursor: true,
-                enabled: !isLoading,
                 onCompleted: (pin) => _verifyOtp(),
               ),
               
               const SizedBox(height: 40),
               PinkGradientButton(
                 text: 'VERIFY OTP',
-                isLoading: isLoading,
-                onPressed: isLoading ? null : _verifyOtp,
+                isLoading: false,
+                onPressed: _verifyOtp,
               ),
               const SizedBox(height: 24),
               
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                   Text("Didn't receive OTP? ", style: TextStyle(color: colorScheme.secondary)),
+                  Text("Didn't receive OTP? ", style: TextStyle(color: colorScheme.secondary)),
                   GestureDetector(
-                    onTap: isLoading ? null : _resendOtp,
+                    onTap: _resendOtp,
                     child: Text(
                       'Resend',
                       style: TextStyle(
-                        color: isLoading 
-                            ? colorScheme.secondary.withValues(alpha: 0.5) 
-                            : colorScheme.primary,
+                        color: colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -191,4 +147,3 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     );
   }
 }
-

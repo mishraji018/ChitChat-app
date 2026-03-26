@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../data/providers/auth_provider.dart';
 
-class SplashScreen extends ConsumerStatefulWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  ConsumerState<SplashScreen> createState() => _SplashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
@@ -36,20 +34,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
   }
 
   Future<void> _navigateToNext() async {
-    // Wait for animation
     await Future.delayed(const Duration(milliseconds: 2500));
-    if (!mounted) return;
-
-    // Check auth status
-    await ref.read(authProvider.notifier).checkAuth();
-    
-    if (!mounted) return;
-    
-    final status = ref.read(authProvider).status;
-    if (status == AuthStatus.authenticated) {
+    if (mounted) {
       context.go('/home/chats');
-    } else {
-      context.go('/login');
     }
   }
 
@@ -79,13 +66,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
-                          '🐻',
-                          style: TextStyle(fontSize: 80),
+                        Icon(
+                          Icons.bolt,
+                          size: 80,
+                          color: colorScheme.primary,
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'ChitChat',
+                          'BlinkChat',
                           style: TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
@@ -95,7 +83,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Chat with your favorite people 🐻',
+                          'Chat at the speed of light ⚡',
                           style: TextStyle(
                             fontSize: 14,
                             color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -131,4 +119,3 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
     );
   }
 }
-

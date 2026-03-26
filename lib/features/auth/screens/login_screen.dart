@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/widgets/auth_input_field.dart';
-import '../../../data/providers/auth_provider.dart';
 
-class LoginScreen extends ConsumerStatefulWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen> {
   final _mobileController = TextEditingController();
   final _passkeyController = TextEditingController();
   bool _obscurePasskey = true;
@@ -21,6 +19,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     _mobileController.dispose();
     _passkeyController.dispose();
     super.dispose();
+  }
+
+  void _login() {
+    context.go('/home/chats');
   }
 
   @override
@@ -64,10 +66,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text(
-                              '🐻',
-                              style: TextStyle(fontSize: 60),
-                            ),
+                            Icon(Icons.bolt, size: 60, color: colorScheme.primary),
                             const SizedBox(height: 24),
                             Text(
                               'Welcome Back',
@@ -97,7 +96,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             prefixText: '+91 ',
                             keyboardType: TextInputType.number,
                             maxLength: 10,
-                            enabled: true,
                           ),
                           const SizedBox(height: 16),
                           AuthInputField(
@@ -105,7 +103,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             labelText: 'Passkey',
                             hintText: 'Enter your passkey',
                             obscureText: _obscurePasskey,
-                            enabled: true,
                             onToggleObscure: () {
                               setState(() {
                                 _obscurePasskey = !_obscurePasskey;
@@ -123,24 +120,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
+                          
                           GestureDetector(
-                            onTap: () {
-                              context.go('/home/chats');
-                            },
+                            onTap: _login,
                             child: Container(
                               width: double.infinity,
                               height: 52,
                               decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFFFF2D78), Color(0xFFFF6B9D)],
-                                ),
                                 borderRadius: BorderRadius.circular(12),
+                                gradient: LinearGradient(
+                                  colors: [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.8)],
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                ),
                               ),
                               alignment: Alignment.center,
-                              child: const Text(
+                              child: Text(
                                 'LOGIN',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: colorScheme.onPrimary,
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -162,8 +160,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text("Don't have an account? ",
-                                  style: TextStyle(color: colorScheme.secondary)),
+                              Text("Don't have an account? ", style: TextStyle(color: colorScheme.secondary)),
                               GestureDetector(
                                 onTap: () => context.push('/signup'),
                                 child: Text(
@@ -176,26 +173,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 40),
-                          Center(
-                            child: GestureDetector(
-                              onTap: () {
-                                context.go('/home/chats');
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                                child: const Text(
-                                  'Dev Mode — Skip Login',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 13,
-                                    decoration: TextDecoration.underline,
+                          const SizedBox(height: 20),
+                          GestureDetector(
+                            onTap: () => context.go('/home/chats'),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              decoration: BoxDecoration(
+                                color: colorScheme.surface,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: colorScheme.primary, width: 1),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.bolt, color: colorScheme.primary, size: 18),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Dev Mode — Skip Login',
+                                    style: TextStyle(
+                                      color: colorScheme.primary,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
-                                ),
+                                ],
                               ),
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 40),
                         ],
                       ),
                     ],

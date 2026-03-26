@@ -79,7 +79,7 @@ class NewGroupScreen extends ConsumerWidget {
       height: 90,
       padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: colorScheme.onSurface.withValues(alpha: 0.05))),
+        border: Border(bottom: BorderSide(color: colorScheme.onSurface.withOpacity(0.05))),
       ),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -95,7 +95,7 @@ class NewGroupScreen extends ConsumerWidget {
                   children: [
                     CircleAvatar(
                       radius: 24,
-                      backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
+                      backgroundColor: colorScheme.primary.withOpacity(0.1),
                       child: Text(contact.name[0], style: TextStyle(color: colorScheme.primary)),
                     ),
                     const SizedBox(height: 4),
@@ -147,7 +147,7 @@ class NewGroupScreen extends ConsumerWidget {
           onChanged: (value) => ref.read(contactsSearchQueryProvider.notifier).state = value,
           decoration: InputDecoration(
             hintText: 'Search by name or number...',
-            hintStyle: TextStyle(color: colorScheme.secondary.withValues(alpha: 0.5)),
+            hintStyle: TextStyle(color: colorScheme.secondary.withOpacity(0.5)),
             prefixIcon: Icon(Icons.search, color: colorScheme.secondary),
             border: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -175,7 +175,7 @@ class _SelectContactTile extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(
         radius: 20,
-        backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
+        backgroundColor: colorScheme.primary.withOpacity(0.1),
         child: Text(contact.name[0], style: TextStyle(color: colorScheme.primary)),
       ),
       title: Text(contact.name, style: const TextStyle(fontWeight: FontWeight.bold)),

@@ -36,7 +36,7 @@ class BlinkChatApp extends ConsumerWidget {
     }
 
     return MaterialApp.router(
-      title: 'ChitChat',
+      title: 'BlinkChat',
       debugShowCheckedModeBanner: false,
       themeMode: mode,
       theme: theme ?? AppTheme.lightTheme,

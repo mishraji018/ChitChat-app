@@ -20,8 +20,6 @@ import '../../features/chat/screens/new_chat_screen.dart';
 import '../../features/chat/screens/new_group_screen.dart';
 import '../../features/chat/screens/new_group_info_screen.dart';
 
-import '../../core/services/storage_service.dart';
-
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
 
@@ -29,26 +27,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/splash',
-    redirect: (context, state) async {
-      final token = await StorageService.getToken();
-      final isAuthPath = state.matchedLocation == '/login' || 
-                         state.matchedLocation == '/signup' || 
-                         state.matchedLocation == '/otp' ||
-                         state.matchedLocation == '/forgot-passkey';
-      final isSplash = state.matchedLocation == '/splash';
-
-      if (isSplash) return null;
-
-      if (token == null) {
-        return isAuthPath ? null : null; // Dev mode: allow all
-      }
-
-      if (isAuthPath) {
-        return '/home/chats';
-      }
-
-      return null;
-    },
+    // redirect explicitly removed for dev bypass
     routes: [
       GoRoute(
         path: '/splash',

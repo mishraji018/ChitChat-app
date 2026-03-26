@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../data/providers/profile_provider.dart';
 import '../../../data/providers/settings_provider.dart';
 import '../../../core/theme/theme_provider.dart';
-import '../../../data/providers/auth_provider.dart';
 import 'package:pinput/pinput.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -56,33 +55,12 @@ class SettingsScreen extends ConsumerWidget {
             _buildTile(Icons.picture_as_pdf_outlined, 'Download chats (PDF)', null, colorScheme),
             _buildTile(Icons.storage_outlined, 'Storage and data', null, colorScheme),
             _buildTile(Icons.help_outline, 'Help', null, colorScheme),
-            _buildTile(Icons.info_outline, 'About ChitChat', 'ChitChat v1.0.0', colorScheme),
+            _buildTile(Icons.info_outline, 'About BlinkChat', 'Version 1.0.0', colorScheme),
           ], colorScheme),
-          const SizedBox(height: 24),
-          _buildLogoutButton(context, ref, colorScheme),
           const SizedBox(height: 32),
-          Center(child: Text('Made with ❤️ by ChitChat Team', style: TextStyle(color: colorScheme.secondary, fontSize: 12))),
+          Center(child: Text('Made with ❤️', style: TextStyle(color: colorScheme.secondary, fontSize: 12))),
           const SizedBox(height: 32),
         ],
-      ),
-    );
-  }
-
-  Widget _buildLogoutButton(BuildContext context, WidgetRef ref, ColorScheme colorScheme) {
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: ListTile(
-        leading: const Icon(Icons.logout, color: Colors.red),
-        title: const Text('Logout', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-        onTap: () async {
-          await ref.read(authProvider.notifier).logout();
-          if (context.mounted) {
-            context.go('/login');
-          }
-        },
       ),
     );
   }

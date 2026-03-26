@@ -83,7 +83,7 @@ class CallsScreen extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.phone_missed, size: 64, color: colorScheme.secondary.withValues(alpha: 0.2)),
+          Icon(Icons.phone_missed, size: 64, color: colorScheme.secondary.withOpacity(0.2)),
           const SizedBox(height: 16),
           Text(
             filter == 'Missed' ? 'No missed calls' : 'No calls yet',
@@ -118,7 +118,7 @@ class _FilterTab extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? colorScheme.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isSelected ? colorScheme.primary : colorScheme.secondary.withValues(alpha: 0.3)),
+          border: Border.all(color: isSelected ? colorScheme.primary : colorScheme.secondary.withOpacity(0.3)),
         ),
         child: Text(
           label,
@@ -161,7 +161,7 @@ class _CallTile extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(
         radius: 24,
-        backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
+        backgroundColor: colorScheme.primary.withOpacity(0.1),
         child: Text(call.contactName[0].toUpperCase(), style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold)),
       ),
       title: Text(call.contactName, style: const TextStyle(fontWeight: FontWeight.bold)),

@@ -72,15 +72,15 @@ class ContactsScreen extends ConsumerWidget {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorScheme.primary.withValues(alpha: 0.05),
+        color: colorScheme.primary.withOpacity(0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.1)),
+        border: Border.all(color: colorScheme.primary.withOpacity(0.1)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: colorScheme.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: colorScheme.primary.withOpacity(0.1), shape: BoxShape.circle),
             child: Icon(Icons.share, color: colorScheme.primary),
           ),
           const SizedBox(width: 16),
@@ -114,7 +114,7 @@ class ContactsScreen extends ConsumerWidget {
           onChanged: (value) => ref.read(contactsSearchQueryProvider.notifier).state = value,
           decoration: InputDecoration(
             hintText: 'Search contacts...',
-            hintStyle: TextStyle(color: colorScheme.secondary.withValues(alpha: 0.5)),
+            hintStyle: TextStyle(color: colorScheme.secondary.withOpacity(0.5)),
             prefixIcon: Icon(Icons.search, color: colorScheme.secondary),
             border: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -137,7 +137,7 @@ class _ContactListTile extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundColor: colorScheme.primary.withValues(alpha: 0.05),
+            backgroundColor: colorScheme.primary.withOpacity(0.05),
             child: Text(contact.name[0], style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold)),
           ),
           if (contact.isOnline)

@@ -73,7 +73,7 @@ class NewChatScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(25),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -83,7 +83,7 @@ class NewChatScreen extends ConsumerWidget {
           onChanged: (value) => ref.read(contactsSearchQueryProvider.notifier).state = value,
           decoration: InputDecoration(
             hintText: 'Search by name or number...',
-            hintStyle: TextStyle(color: colorScheme.secondary.withValues(alpha: 0.7)),
+            hintStyle: TextStyle(color: colorScheme.secondary.withOpacity(0.7)),
             prefixIcon: Icon(Icons.search, color: colorScheme.primary),
             border: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(vertical: 15),
@@ -103,7 +103,7 @@ class NewChatScreen extends ConsumerWidget {
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(color: iconColor.withValues(alpha: 0.1), shape: BoxShape.circle),
+        decoration: BoxDecoration(color: iconColor.withOpacity(0.1), shape: BoxShape.circle),
         child: Icon(icon, color: iconColor),
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -127,7 +127,7 @@ class _ContactTile extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 24,
-            backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
+            backgroundColor: colorScheme.primary.withOpacity(0.1),
             child: Text(
               contact.name[0].toUpperCase(),
               style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),

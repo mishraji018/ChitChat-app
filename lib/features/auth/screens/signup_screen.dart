@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../shared/widgets/auth_input_field.dart';
 import '../../../shared/widgets/pink_gradient_button.dart';
-import '../../../data/providers/auth_provider.dart';
 
-class SignupScreen extends ConsumerStatefulWidget {
+class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
 
   @override
-  ConsumerState<SignupScreen> createState() => _SignupScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _SignupScreenState extends ConsumerState<SignupScreen> {
+class _SignupScreenState extends State<SignupScreen> {
   final _nameController = TextEditingController();
   final _mobileController = TextEditingController();
   final _emailController = TextEditingController();
@@ -34,47 +32,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     super.dispose();
   }
 
-  Future<void> _signup() async {
-    if (!_formKey.currentState!.validate()) return;
-    if (!_agreedToTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please agree to Terms & Conditions'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    final email = _emailController.text.trim();
-    final success = await ref.read(authProvider.notifier).signup(
-          _nameController.text.trim(),
-          _mobileController.text.trim(),
-          email,
-          _passkeyController.text.trim(),
-        );
-
-    if (!mounted) return;
-
-    if (success) {
-      context.push('/otp', extra: email);
-    } else {
-      final errorMessage = ref.read(authProvider).errorMessage ?? 'Signup failed';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+  void _signup() {
+    context.go('/home/chats');
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final authState = ref.watch(authProvider);
-    final isLoading = authState.status == AuthStatus.loading;
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -116,12 +81,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Center(
-                        child: Text(
-                          '🐻',
-                          style: TextStyle(fontSize: 60),
-                        ),
-                      ),
                       const SizedBox(height: 16),
                       Text(
                         'Create Account',
@@ -129,7 +88,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Join ChitChat today',
+                        'Join BlinkChat today',
                         style: TextStyle(fontSize: 14, color: colorScheme.secondary),
                       ),
                       const SizedBox(height: 32),
@@ -138,7 +97,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         controller: _nameController,
                         hintText: 'Enter your full name',
                         prefixIcon: Icons.person,
-                        enabled: !isLoading,
                         validator: (val) {
                           if (val == null || val.trim().length < 2) {
                             return 'Enter at least 2 characters';
@@ -157,7 +115,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         prefixText: '+91 ',
                         keyboardType: TextInputType.number,
                         maxLength: 10,
-                        enabled: !isLoading,
                         validator: (val) {
                           if (val == null || val.length != 10) return 'Enter a valid 10-digit number';
                           return null;
@@ -170,11 +127,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         hintText: 'Enter your email',
                         prefixIcon: Icons.email,
                         keyboardType: TextInputType.emailAddress,
-                        enabled: !isLoading,
                         validator: (val) {
-                          if (val == null || val.isEmpty) return 'Email is required';
-                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(val)) {
-                            return 'Enter a valid email address';
+                          if (val != null && val.isNotEmpty) {
+                            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(val)) {
+                              return 'Enter a valid email address';
+                            }
                           }
                           return null;
                         },
@@ -186,7 +143,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         hintText: 'Create a passkey (min 6 chars)',
                         prefixIcon: Icons.lock,
                         obscureText: _obscurePasskey,
-                        enabled: !isLoading,
                         onToggleObscure: () => setState(() => _obscurePasskey = !_obscurePasskey),
                         validator: (val) {
                           if (val == null || val.length < 6) return 'Passkey must be at least 6 characters';
@@ -200,7 +156,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         hintText: 'Confirm passkey',
                         prefixIcon: Icons.lock_outline,
                         obscureText: _obscureConfirmPasskey,
-                        enabled: !isLoading,
                         onToggleObscure: () => setState(() => _obscureConfirmPasskey = !_obscureConfirmPasskey),
                         validator: (val) {
                           if (val != _passkeyController.text) return 'Passkeys do not match';
@@ -215,7 +170,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             value: _agreedToTerms,
                             checkColor: colorScheme.onPrimary,
                             side: BorderSide(color: colorScheme.secondary),
-                            onChanged: isLoading ? null : (val) {
+                            onChanged: (val) {
                               setState(() => _agreedToTerms = val ?? false);
                             },
                           ),
@@ -230,8 +185,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       
                       PinkGradientButton(
                         text: 'SIGN UP',
-                        isLoading: isLoading,
-                        onPressed: isLoading ? null : _signup,
+                        isLoading: false,
+                        onPressed: _signup,
                       ),
                       const SizedBox(height: 32),
                       
@@ -240,7 +195,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         children: [
                           Text("Already have an account? ", style: TextStyle(color: colorScheme.secondary)),
                           GestureDetector(
-                            onTap: isLoading ? null : () => context.go('/login'),
+                            onTap: () => context.go('/login'),
                             child: Text(
                               'Login',
                               style: TextStyle(
@@ -263,4 +218,3 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     );
   }
 }
-

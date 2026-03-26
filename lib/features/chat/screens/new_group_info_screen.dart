@@ -68,7 +68,7 @@ class _NewGroupInfoScreenState extends ConsumerState<NewGroupInfoScreen> {
         children: [
           CircleAvatar(
             radius: 50,
-            backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
+            backgroundColor: colorScheme.primary.withOpacity(0.1),
             child: Icon(Icons.group, size: 50, color: colorScheme.primary),
           ),
           Positioned(
@@ -76,7 +76,7 @@ class _NewGroupInfoScreenState extends ConsumerState<NewGroupInfoScreen> {
             right: 0,
             child: Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: colorScheme.surface, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4)]),
+              decoration: BoxDecoration(color: colorScheme.surface, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4)]),
               child: Icon(Icons.camera_alt, size: 20, color: colorScheme.primary),
             ),
           ),
@@ -136,7 +136,7 @@ class _NewGroupInfoScreenState extends ConsumerState<NewGroupInfoScreen> {
                   children: [
                     CircleAvatar(
                       radius: 20,
-                      backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
+                      backgroundColor: colorScheme.primary.withOpacity(0.1),
                       child: Text(contact.name[0], style: TextStyle(color: colorScheme.primary, fontSize: 12)),
                     ),
                     const SizedBox(height: 4),

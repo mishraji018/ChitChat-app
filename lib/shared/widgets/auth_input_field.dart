@@ -5,14 +5,12 @@ class AuthInputField extends StatelessWidget {
   final String hintText;
   final IconData? prefixIcon;
   final String? prefixText;
-  final TextStyle? prefixStyle;
   final bool obscureText;
   final VoidCallback? onToggleObscure;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
   final int? maxLength;
   final String? labelText;
-  final bool enabled;
 
   const AuthInputField({
     super.key,
@@ -20,14 +18,12 @@ class AuthInputField extends StatelessWidget {
     required this.hintText,
     this.prefixIcon,
     this.prefixText,
-    this.prefixStyle,
     this.obscureText = false,
     this.onToggleObscure,
     this.keyboardType = TextInputType.text,
     this.validator,
     this.maxLength,
     this.labelText,
-    this.enabled = true,
   });
 
   @override
@@ -39,7 +35,6 @@ class AuthInputField extends StatelessWidget {
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
-      enabled: enabled,
       validator: validator,
       maxLength: maxLength,
       style: TextStyle(color: colorScheme.onSurface),
@@ -51,7 +46,7 @@ class AuthInputField extends StatelessWidget {
         hintText: hintText,
         hintStyle: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.5)),
         prefixText: prefixText,
-        prefixStyle: prefixStyle ?? TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 16),
+        prefixStyle: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 16),
         prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: colorScheme.primary) : null,
         suffixIcon: onToggleObscure != null
             ? IconButton(

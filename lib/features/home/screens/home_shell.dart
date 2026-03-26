@@ -107,9 +107,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           : AppBar(
               title: Row(
                 children: [
-                  const Text('🐻', style: TextStyle(fontSize: 22)),
+                  const Text('⚡', style: TextStyle(fontSize: 22)),
                   const SizedBox(width: 8),
-                  Text('ChitChat',
+                  Text('BlinkChat',
                       style: TextStyle(
                         color: colorScheme.primary,
                         fontWeight: FontWeight.bold,
