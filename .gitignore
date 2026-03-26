@@ -1,22 +1,27 @@
-# Root gitignore for ChitChat app (Frontend + Backend)
-
-# Frontend (Flutter)
+# Flutter Frontend
 frontend/.dart_tool/
+frontend/build/
 frontend/.flutter-plugins
 frontend/.flutter-plugins-dependencies
+frontend/*.iml
 frontend/.metadata
-frontend/build/
-frontend/pubspec.lock
-frontend/ios/Flutter/Generated.xcconfig
-frontend/android/local.properties
+frontend/analysis_output.txt
+frontend/analyze.txt
+frontend/analyze_output.txt
+frontend/build_error.txt
+frontend/full_analysis.txt
+frontend/gradle_errors.txt
+frontend/gradle_full.log
+frontend/gradle_log.txt
+frontend/gradle_output.txt
+frontend/gradle2.txt
+frontend/chitchat_app.iml
 
-# Backend (Node.js)
+# Backend
 backend/node_modules/
 backend/.env
-backend/npm-debug.log*
 
-# Misc
-.idea/
+# General
 .vscode/
-*.iml
 .DS_Store
+*.log
