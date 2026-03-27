@@ -25,7 +25,7 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final authState = ref.read(authProvider);
-      final userId = authState.user?['id'] as String?;
+      final userId = authState.user?.id;
       if (userId != null) {
         // Store userId in settings so setString(app_pin) can use it
         ref.read(settingsProvider.notifier).setCurrentUserId(userId);
@@ -129,8 +129,9 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
 
     final location = GoRouterState.of(context).uri.path;
     int selectedIndex = 0;
-    if (location.startsWith('/home/calls')) selectedIndex = 1;
-    else if (location.startsWith('/home/contacts')) selectedIndex = 2;
+    if (location.startsWith('/home/calls')) {
+      selectedIndex = 1;
+    } else if (location.startsWith('/home/contacts')) selectedIndex = 2;
     else if (location.startsWith('/home/settings')) selectedIndex = 3;
     final isSelectionMode = ref.watch(isSelectionModeProvider);
     final selectedChatsCount = ref.watch(selectedChatsProvider).length;

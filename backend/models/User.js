@@ -51,9 +51,49 @@ const UserSchema = new mongoose.Schema({
   pushToken: String,
   otp: String,
   otpExpire: Date,
+  otpExpiry: { type: Date },
+  isVerified: { type: Boolean, default: false },
+  profilePhoto: { type: String, default: '' },
   createdAt: {
     type: Date,
     default: Date.now,
+  },
+  passkeys: [
+    {
+      id: { type: String, required: true },
+      deviceName: { type: String, required: true },
+      createdAt: { type: Date, default: Date.now },
+    },
+  ],
+  pendingPhone: { type: String, default: null },
+  phoneChangeOtp: { type: String, default: null },
+  phoneChangeOtpExpiry: { type: Date, default: null },
+  privacySettings: {
+    lastSeen: {
+      type: String,
+      enum: ['everyone', 'contacts', 'nobody'],
+      default: 'everyone',
+    },
+    profilePhoto: {
+      type: String,
+      enum: ['everyone', 'contacts', 'nobody'],
+      default: 'everyone',
+    },
+    about: {
+      type: String,
+      enum: ['everyone', 'contacts', 'nobody'],
+      default: 'everyone',
+    },
+    status: {
+      type: String,
+      enum: ['everyone', 'contacts', 'nobody'],
+      default: 'contacts',
+    },
+    readReceipts: { type: Boolean, default: true },
+    silenceUnknownCallers: { type: Boolean, default: false },
+    defaultMessageTimer: { type: Number, default: 0 }, // 0=off, 86400=24h, 604800=7d, 7776000=90d
+    blockedContacts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    appLock: { type: Boolean, default: false },
   },
 }, {
   toJSON: { virtuals: true },

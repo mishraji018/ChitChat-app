@@ -15,7 +15,8 @@ import '../../features/calls/screens/calls_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/contacts/screens/contacts_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
-import '../../features/settings/screens/privacy_screen.dart';
+import '../../features/settings/screens/account_settings_screen.dart';
+import '../../features/settings/screens/privacy_settings_screen.dart';
 import '../../features/settings/screens/security_screen.dart';
 import '../../features/settings/screens/notifications_screen.dart';
 import '../../features/chat/screens/new_chat_screen.dart';
@@ -64,10 +65,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/otp',
         name: 'otp',
-        builder: (context, state) {
-          final email = state.extra as String?;
-          return OtpScreen(email: email);
-        },
+        builder: (context, state) => const OtpScreen(),
       ),
       GoRoute(
         path: '/forgot-passkey',
@@ -156,10 +154,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const NewGroupInfoScreen(),
       ),
       GoRoute(
-        path: '/privacy',
+        path: '/settings/account',
+        name: 'account',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AccountSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/settings/privacy',
         name: 'privacy',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const PrivacyScreen(),
+        builder: (context, state) => const PrivacySettingsScreen(),
       ),
       GoRoute(
         path: '/security',

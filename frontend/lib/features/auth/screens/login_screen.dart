@@ -1,255 +1,172 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../shared/widgets/glass_widgets.dart';
+import '../../../data/providers/auth_provider.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final _mobileController = TextEditingController();
-  final _passkeyController = TextEditingController();
-  bool _obscurePasskey = true;
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final _emailCtrl = TextEditingController();
+  final _passCtrl = TextEditingController();
+  bool _obscure = true;
 
   @override
   void dispose() {
-    _mobileController.dispose();
-    _passkeyController.dispose();
+    _emailCtrl.dispose();
+    _passCtrl.dispose();
     super.dispose();
   }
 
-  void _login() {
-    context.go('/home/chats');
+  Future<void> _login() async {
+    final email = _emailCtrl.text.trim();
+    final password = _passCtrl.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      _snack('Please enter email and password');
+      return;
+    }
+
+    final ok = await ref.read(authProvider.notifier).login(
+          email: email,
+          password: password,
+        );
+
+    if (ok && mounted) context.go('/home/chats');
+  }
+
+  void _snack(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final colorScheme = theme.colorScheme;
+    final auth = ref.watch(authProvider);
 
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: GlassBackground(
-          isDark: isDark,
-          child: SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40),
-                child: Column(
+    ref.listen<AuthState>(authProvider, (_, next) {
+      if (next.error != null) {
+        _snack(next.error!);
+        ref.read(authProvider.notifier).clearError();
+      }
+    });
+
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 28),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 32),
+                Text('🐻', style: TextStyle(fontSize: 72)),
+                const SizedBox(height: 8),
+                Text('ChitChat',
+                    style: theme.textTheme.headlineMedium
+                        ?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text('Welcome back!',
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                const SizedBox(height: 40),
+
+                // Email
+                TextField(
+                  controller: _emailCtrl,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email_outlined),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Password
+                TextField(
+                  controller: _passCtrl,
+                  obscureText: _obscure,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscure
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined),
+                      onPressed: () => setState(() => _obscure = !_obscure),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Forgot password
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => context.push('/forgot-passkey'),
+                    child: const Text('Forgot password?'),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Login button
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: FilledButton(
+                    onPressed: auth.isLoading ? null : _login,
+                    child: auth.isLoading
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Text('Login', style: TextStyle(fontSize: 16)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Sign up link
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Glass Logo Container
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [colorScheme.primary, colorScheme.tertiary],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: colorScheme.primary.withValues(alpha: 0.3),
-                            blurRadius: 20,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: const Text('🐻', style: TextStyle(fontSize: 48)),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Welcome Back',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w900,
-                        color: colorScheme.onSurface,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    Text(
-                      'Sign in to your premium account',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colorScheme.secondary.withValues(alpha: 0.7),
-                      ),
-                    ),
-                    const SizedBox(height: 48),
-                    
-                    // Glass Login Card
-                    GlassCard(
-                      isDark: isDark,
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _buildGlassTextField(
-                            controller: _mobileController,
-                            hint: 'Mobile Number',
-                            icon: Icons.phone_android_rounded,
-                            isDark: isDark,
-                            colorScheme: colorScheme,
-                            prefix: '+91 ',
-                            keyboardType: TextInputType.phone,
-                          ),
-                          const SizedBox(height: 20),
-                          _buildGlassTextField(
-                            controller: _passkeyController,
-                            hint: 'Passkey',
-                            icon: Icons.key_rounded,
-                            isDark: isDark,
-                            colorScheme: colorScheme,
-                            isPassword: true,
-                            obscureText: _obscurePasskey,
-                            onToggleVisibility: () {
-                              setState(() => _obscurePasskey = !_obscurePasskey);
-                            },
-                          ),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () => context.push('/forgot-passkey'),
-                              style: TextButton.styleFrom(
-                                foregroundColor: colorScheme.primary,
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
-                              ),
-                              child: const Text('Forgot Passkey?', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          
-                          // Premium Login Button
-                          GestureDetector(
-                            onTap: _login,
-                            child: Container(
-                              height: 58,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                gradient: LinearGradient(
-                                  colors: [colorScheme.primary, colorScheme.tertiary],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: colorScheme.primary.withValues(alpha: 0.3),
-                                    blurRadius: 15,
-                                    offset: const Offset(0, 8),
-                                  ),
-                                ],
-                              ),
-                              alignment: Alignment.center,
-                              child: const Text(
-                                'SIGN IN',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1.5,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 32),
-                    
-                    // Social or Secondary Options
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text("New to ChitChat? ", style: TextStyle(color: colorScheme.secondary)),
-                        GestureDetector(
-                          onTap: () => context.push('/signup'),
-                          child: Text(
-                            'Create Account',
-                            style: TextStyle(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 40),
-                    
-                    // Dev mode button with glass style
-                    Opacity(
-                      opacity: 0.6,
-                      child: TextButton.icon(
-                        onPressed: () => context.go('/home/chats'),
-                        icon: const Text('🐻'),
-                        label: const Text('Developer Quick Access'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: colorScheme.primary,
-                          backgroundColor: colorScheme.primary.withValues(alpha: 0.05),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
+                    Text("Don't have an account?",
+                        style: theme.textTheme.bodyMedium),
+                    TextButton(
+                      onPressed: () => context.push('/signup'),
+                      child: const Text('Sign up'),
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 24),
+
+                // ── DEV MODE BYPASS — DO NOT REMOVE ──
+                const Divider(),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: () => context.go('/home/chats'),
+                  icon: const Icon(Icons.developer_mode, size: 16),
+                  label: const Text('Dev Mode — Skip Login'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: theme.colorScheme.onSurfaceVariant,
+                    side: BorderSide(color: theme.colorScheme.outline),
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGlassTextField({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    required bool isDark,
-    required ColorScheme colorScheme,
-    String? prefix,
-    bool isPassword = false,
-    bool obscureText = false,
-    VoidCallback? onToggleVisibility,
-    TextInputType? keyboardType,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
-          width: 1,
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: TextField(
-        controller: controller,
-        obscureText: obscureText,
-        keyboardType: keyboardType,
-        style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.w600),
-        decoration: InputDecoration(
-          icon: Icon(icon, color: colorScheme.primary.withValues(alpha: 0.7), size: 20),
-          prefixText: prefix,
-          prefixStyle: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold),
-          hintText: hint,
-          hintStyle: TextStyle(color: colorScheme.secondary.withValues(alpha: 0.5), fontWeight: FontWeight.normal),
-          border: InputBorder.none,
-          suffixIcon: isPassword 
-            ? IconButton(
-                icon: Icon(
-                  obscureText ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                  color: colorScheme.secondary.withValues(alpha: 0.5),
-                  size: 20,
-                ),
-                onPressed: onToggleVisibility,
-              )
-            : null,
         ),
       ),
     );

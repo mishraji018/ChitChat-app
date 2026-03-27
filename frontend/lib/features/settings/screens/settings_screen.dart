@@ -63,7 +63,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 isDark: isDark,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Column(children: [
-                  GlassTile(isDark: isDark, icon: Icons.privacy_tip_outlined, iconColor: Colors.blue, title: 'Privacy', onTap: () => context.push('/privacy')),
+                  GlassTile(isDark: isDark, icon: Icons.manage_accounts_outlined, iconColor: Colors.deepOrange, title: 'Account', onTap: () => context.push('/settings/account')),
+                  const Divider(height: 1),
+                  GlassTile(isDark: isDark, icon: Icons.privacy_tip_outlined, iconColor: Colors.blue, title: 'Privacy', onTap: () => context.push('/settings/privacy')),
                   const Divider(height: 1),
                   GlassTile(isDark: isDark, icon: Icons.security_outlined, iconColor: Colors.green, title: 'Security', onTap: () => context.push('/security')),
                 ]),

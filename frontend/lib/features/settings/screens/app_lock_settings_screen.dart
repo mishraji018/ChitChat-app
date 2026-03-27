@@ -99,7 +99,7 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
                   title: Text('Enable App Lock', style: TextStyle(fontWeight: FontWeight.w600, color: colorScheme.onSurface)),
                   subtitle: Text('Require PIN to open ChitChat', style: TextStyle(color: colorScheme.secondary, fontSize: 12)),
                   value: appLockEnabled,
-                  activeColor: colorScheme.primary,
+                  activeThumbColor: colorScheme.primary,
                   onChanged: (val) {
                     if (val && !hasPin) {
                       _showPinSheet(context, ref, colorScheme, isDark);
@@ -147,7 +147,7 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
                       title: Text('Fingerprint Unlock', style: TextStyle(fontWeight: FontWeight.w600, color: colorScheme.onSurface)),
                       subtitle: Text('Use biometrics as fallback', style: TextStyle(color: colorScheme.secondary, fontSize: 12)),
                       value: biometricsEnabled,
-                      activeColor: Colors.green,
+                      activeThumbColor: Colors.green,
                       onChanged: (val) {
                         ref.read(settingsProvider.notifier).setBool('app_biometrics_enabled', val);
                       },

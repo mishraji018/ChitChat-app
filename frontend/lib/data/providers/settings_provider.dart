@@ -31,7 +31,9 @@ class SettingsNotifier extends StateNotifier<Map<String, dynamic>> {
   static const _callRingtoneKey = 'call_ringtone';
   static const _callVibrateKey = 'call_vibrate';
 
-  SettingsNotifier() : super({
+  final ApiService _api;
+
+  SettingsNotifier(this._api) : super({
     _notificationsKey: true,
     _groupNotificationsKey: true,
     _vibrationKey: true,
@@ -99,7 +101,7 @@ class SettingsNotifier extends StateNotifier<Map<String, dynamic>> {
       // Don't send PIN to backend
       final safeState = Map<String, dynamic>.from(state);
       safeState.remove(_appPinKey);
-      ApiService.put('/users/settings', safeState);
+      _api.put('/users/settings', data: safeState);
     } catch (_) {}
   }
 
@@ -117,7 +119,7 @@ class SettingsNotifier extends StateNotifier<Map<String, dynamic>> {
 
   Future<void> syncSettingsFromBackend() async {
     try {
-      final response = await ApiService.get('/auth/me');
+      final response = await _api.get('/auth/me');
       if (response.statusCode == 200 && response.data['success']) {
         final Map<String, dynamic> remoteSettings = response.data['data']['settings'] ?? {};
         if (remoteSettings.isNotEmpty) {
@@ -191,7 +193,7 @@ class SettingsNotifier extends StateNotifier<Map<String, dynamic>> {
 }
 
 final settingsProvider = StateNotifierProvider<SettingsNotifier, Map<String, dynamic>>((ref) {
-  return SettingsNotifier();
+  return SettingsNotifier(ref.read(apiServiceProvider));
 });
 
 final notificationsEnabledProvider = Provider((ref) => (ref.watch(settingsProvider)['notifications_enabled'] ?? true) as bool);

@@ -13,6 +13,8 @@ const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const chatRoutes = require('./routes/chat.routes');
 const mediaRoutes = require('./routes/media.routes');
+const privacyRoutes = require('./routes/privacyRoutes');
+const accountRoutes = require('./routes/accountRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -29,9 +31,16 @@ initSocket(server);
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:8080',
+    'http://localhost:52000',
+    'http://10.0.2.2:5000',
+    'http://127.0.0.1:5000',
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -47,6 +56,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/media', mediaRoutes);
+app.use('/api/privacy', privacyRoutes);
+app.use('/api/account', accountRoutes);
 
 // Error Handling Middleware
 app.use(errorHandler);

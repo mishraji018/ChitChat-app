@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/message_model.dart';
 import '../../core/services/socket_service.dart';
+import '../../core/services/sound_service.dart';
+import '../../core/services/notification_service.dart';
 
 class MessageNotifier extends StateNotifier<List<MessageModel>> {
   final String conversationId;
@@ -16,12 +18,20 @@ class MessageNotifier extends StateNotifier<List<MessageModel>> {
 
   void _initSocket() {
     // Listen for new messages
-    SocketService.onNewMessage((data) {
+    SocketService.onNewMessage((data) async {
       final message = MessageModel.fromJson(data);
       if (message.id.isNotEmpty && !state.any((m) => m.id == message.id)) {
         state = [message, ...state];
         // Mark as delivered
         SocketService.messageDelivered(message.id);
+        
+        // Trigger incoming sound and high priority notification
+        await SoundService.playMessageReceived();
+        await NotificationService.showMessageNotification(
+          senderName: 'Contact', // or resolve dynamically
+          message: message.text ?? '📎 Media',
+          conversationId: conversationId,
+        );
       }
     });
 
@@ -99,6 +109,9 @@ class MessageNotifier extends StateNotifier<List<MessageModel>> {
       text: text,
       replyToId: replyTo?.id,
     );
+    
+    // Play the sent tone
+    await SoundService.playMessageSent();
   }
 
   void sendTyping() {

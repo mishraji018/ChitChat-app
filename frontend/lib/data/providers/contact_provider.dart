@@ -1,9 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/user_repository.dart';
 import '../repositories/chat_repository.dart';
+import '../../core/services/api_service.dart';
 
-final userRepositoryProvider = Provider((ref) => UserRepository());
-final chatRepositoryProvider = Provider((ref) => ChatRepository());
+final userRepositoryProvider = Provider((ref) => UserRepository(ref.watch(apiServiceProvider)));
+final chatRepositoryProvider = Provider((ref) => ChatRepository(ref.watch(apiServiceProvider)));
 
 class ContactState {
   final bool isLoading;

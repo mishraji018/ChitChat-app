@@ -1,183 +1,177 @@
-import 'dart:ui';
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pinput/pinput.dart';
-import '../../../../shared/widgets/glass_widgets.dart';
+import '../../../data/providers/auth_provider.dart';
 
-class OtpScreen extends StatefulWidget {
-  final String? email;
-  const OtpScreen({super.key, this.email});
+class OtpScreen extends ConsumerStatefulWidget {
+  const OtpScreen({super.key});
 
   @override
-  State<OtpScreen> createState() => _OtpScreenState();
+  ConsumerState<OtpScreen> createState() => _OtpScreenState();
 }
 
-class _OtpScreenState extends State<OtpScreen> {
-  final _otpController = TextEditingController();
+class _OtpScreenState extends ConsumerState<OtpScreen> {
+  final List<TextEditingController> _ctrl =
+      List.generate(6, (_) => TextEditingController());
+  final List<FocusNode> _focus = List.generate(6, (_) => FocusNode());
+
+  int _resendSeconds = 60;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
 
   @override
   void dispose() {
-    _otpController.dispose();
+    _timer?.cancel();
+    for (final c in _ctrl) c.dispose();
+    for (final f in _focus) f.dispose();
     super.dispose();
   }
 
-  void _verifyOtp() {
-    context.go('/home/chats');
+  void _startTimer() {
+    _timer?.cancel();
+    setState(() => _resendSeconds = 60);
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (_resendSeconds == 0) {
+        t.cancel();
+      } else {
+        setState(() => _resendSeconds--);
+      }
+    });
   }
 
-  void _resendOtp() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('✨ New OTP sent to your email'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
+  String get _otp => _ctrl.map((c) => c.text).join();
+
+  Future<void> _verify() async {
+    if (_otp.length < 6) {
+      _snack('Enter the full 6-digit OTP');
+      return;
+    }
+
+    final ok = await ref.read(authProvider.notifier).verifyOtp(_otp);
+    if (ok && mounted) context.go('/home/chats');
+  }
+
+  Future<void> _resend() async {
+    await ref.read(authProvider.notifier).resendOtp();
+    _snack('OTP resent to your email');
+    _startTimer();
+  }
+
+  void _onDigitChanged(String value, int index) {
+    if (value.isNotEmpty && index < 5) {
+      _focus[index + 1].requestFocus();
+    }
+    if (value.isEmpty && index > 0) {
+      _focus[index - 1].requestFocus();
+    }
+    setState(() {});
+  }
+
+  void _snack(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final colorScheme = theme.colorScheme;
+    final auth = ref.watch(authProvider);
 
-    final defaultPinTheme = PinTheme(
-      width: 52,
-      height: 60,
-      textStyle: TextStyle(fontSize: 24, color: colorScheme.onSurface, fontWeight: FontWeight.bold),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05)),
-      ),
-    );
-
-    final focusedPinTheme = defaultPinTheme.copyDecorationWith(
-      border: Border.all(color: colorScheme.primary, width: 2),
-      color: colorScheme.primary.withValues(alpha: 0.05),
-    );
+    ref.listen<AuthState>(authProvider, (_, next) {
+      if (next.error != null) {
+        _snack(next.error!);
+        ref.read(authProvider.notifier).clearError();
+      }
+    });
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: colorScheme.onSurface, size: 20),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: GlassBackground(
-        isDark: isDark,
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 40),
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(colors: [colorScheme.primary, colorScheme.tertiary]),
-                    boxShadow: [
-                      BoxShadow(color: colorScheme.primary.withValues(alpha: 0.3), blurRadius: 25, spreadRadius: 2),
-                    ],
-                  ),
-                  child: const Icon(Icons.mark_email_read_rounded, color: Colors.white, size: 40),
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  'Verify Identity',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: colorScheme.onSurface),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'We sent a 6-digit code to',
-                  style: TextStyle(fontSize: 14, color: colorScheme.secondary),
-                ),
-                Text(
-                  widget.email ?? 'your premium email',
-                  style: TextStyle(fontSize: 14, color: colorScheme.primary, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 48),
-                
-                // Glass Card for OTP Input
-                GlassCard(
-                  isDark: isDark,
-                  padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
-                  child: Column(
-                    children: [
-                      Pinput(
-                        length: 6,
-                        controller: _otpController,
-                        defaultPinTheme: defaultPinTheme,
-                        focusedPinTheme: focusedPinTheme,
-                        pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
-                        showCursor: true,
-                        onCompleted: (pin) => _verifyOtp(),
+      appBar: AppBar(title: const Text('Verify Email'), elevation: 0),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+          child: Column(
+            children: [
+              const SizedBox(height: 24),
+              Text('📬', style: TextStyle(fontSize: 64)),
+              const SizedBox(height: 16),
+              Text('Check your email',
+                  style: theme.textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text(
+                'Enter the 6-digit OTP sent to your email address.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: 40),
+
+              // OTP boxes
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: List.generate(6, (i) {
+                  return SizedBox(
+                    width: 46,
+                    height: 56,
+                    child: TextField(
+                      controller: _ctrl[i],
+                      focusNode: _focus[i],
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      maxLength: 1,
+                      style: theme.textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                      decoration: InputDecoration(
+                        counterText: '',
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        contentPadding: EdgeInsets.zero,
                       ),
-                      const SizedBox(height: 40),
-                      
-                      GestureDetector(
-                        onTap: _verifyOtp,
-                        child: Container(
-                          width: double.infinity,
-                          height: 58,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            gradient: LinearGradient(
-                              colors: [colorScheme.primary, colorScheme.tertiary],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: colorScheme.primary.withValues(alpha: 0.3),
-                                blurRadius: 15,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: const Text(
-                            'VERIFY & CONTINUE',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                const Spacer(),
-                
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text("Didn't receive the code? ", style: TextStyle(color: colorScheme.secondary)),
-                    TextButton(
-                      onPressed: _resendOtp,
-                      child: Text(
-                        'Resend Now',
-                        style: TextStyle(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      onChanged: (v) => _onDigitChanged(v, i),
                     ),
-                  ],
+                  );
+                }),
+              ),
+              const SizedBox(height: 32),
+
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: FilledButton(
+                  onPressed: auth.isLoading ? null : _verify,
+                  child: auth.isLoading
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Text('Verify', style: TextStyle(fontSize: 16)),
                 ),
-                const SizedBox(height: 24),
-              ],
-            ),
+              ),
+              const SizedBox(height: 20),
+
+              // Resend
+              _resendSeconds > 0
+                  ? Text(
+                      'Resend OTP in ${_resendSeconds}s',
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    )
+                  : TextButton(
+                      onPressed: _resend,
+                      child: const Text('Resend OTP'),
+                    ),
+            ],
           ),
         ),
       ),

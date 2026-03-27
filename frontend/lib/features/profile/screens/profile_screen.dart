@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../data/providers/profile_provider.dart';
 import '../../../data/providers/settings_provider.dart';
 
@@ -122,7 +123,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               CircleAvatar(
                 radius: 60,
                 backgroundColor: colorScheme.primary,
-                backgroundImage: profile.avatarUrl != null ? FileImage(File(profile.avatarUrl!)) : null,
+                backgroundImage: profile.avatarUrl != null 
+                    ? (kIsWeb ? NetworkImage(profile.avatarUrl!) as ImageProvider : FileImage(File(profile.avatarUrl!))) 
+                    : null,
                 child: profile.avatarUrl == null
                     ? Text(profile.name[0].toUpperCase(), style: TextStyle(fontSize: 40, color: colorScheme.onPrimary, fontWeight: FontWeight.bold))
                     : null,

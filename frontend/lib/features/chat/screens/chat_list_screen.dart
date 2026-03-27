@@ -5,7 +5,6 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../../data/providers/chat_provider.dart';
 import '../../../data/models/chat_model.dart';
 import '../../../../shared/widgets/glass_widgets.dart';
-import 'dart:ui';
 
 class ChatListScreen extends ConsumerStatefulWidget {
   const ChatListScreen({super.key});

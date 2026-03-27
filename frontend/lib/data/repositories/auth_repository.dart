@@ -1,129 +1,74 @@
 import 'dart:convert';
-import 'package:dio/dio.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/storage_service.dart';
+import '../models/user_model.dart';
 
 class AuthRepository {
+  final ApiService _api;
+  AuthRepository(this._api);
 
-  // SIGNUP
-  Future<Map<String, dynamic>> signup({
+  Future<({String userId})> signup({
     required String name,
-    required String mobile,
     required String email,
-    required String passkey,
+    required String phone,
+    required String password,
   }) async {
-    try {
-      final response = await ApiService.post('/auth/signup', {
-        'name': name,
-        'mobile': mobile,
-        'email': email,
-        'passkey': passkey,
-      });
-      return {'success': true, 'data': response.data};
-    } on DioException catch (e) {
-      return {
-        'success': false,
-        'message': e.response?.data['message'] ?? 'Signup failed'
-      };
-    }
+    final data = await _api.signup(
+      name: name,
+      email: email,
+      phone: phone,
+      password: password,
+    );
+    return (userId: data['userId'] as String);
   }
 
-  // VERIFY OTP
-  Future<Map<String, dynamic>> verifyOtp({
-    required String email,
+  Future<UserModel> verifyOtp({
+    required String userId,
     required String otp,
   }) async {
-    try {
-      final response = await ApiService.post('/auth/verify-otp', {
-        'email': email,
-        'otp': otp,
-      });
-      // Save token on success
-      if (response.data['token'] != null) {
-        await StorageService.saveToken(response.data['token']);
-        await StorageService.saveUser(
-          jsonEncode(response.data['user'])
-        );
-        ApiService.setAuthToken(response.data['token']);
-      }
-      return {'success': true, 'data': response.data};
-    } on DioException catch (e) {
-      return {
-        'success': false,
-        'message': e.response?.data['message'] ?? 'OTP verification failed'
-      };
-    }
+    final data = await _api.verifyOtp(userId: userId, otp: otp);
+    final token = data['token'] as String;
+    final user = UserModel.fromJson(data['user'] as Map<String, dynamic>);
+
+    await StorageService.saveToken(token);
+    await StorageService.saveUser(jsonEncode(user.toJson()));
+
+    return user;
   }
 
-  // LOGIN
-  Future<Map<String, dynamic>> login({
-    required String mobile,
-    required String passkey,
+  Future<UserModel> login({
+    required String email,
+    required String password,
   }) async {
-    try {
-      final response = await ApiService.post('/auth/login', {
-        'mobile': mobile,
-        'passkey': passkey,
-      });
-      // Save token on success
-      if (response.data['token'] != null) {
-        await StorageService.saveToken(response.data['token']);
-        await StorageService.saveUser(
-          jsonEncode(response.data['user'])
-        );
-        ApiService.setAuthToken(response.data['token']);
-      }
-      return {'success': true, 'data': response.data};
-    } on DioException catch (e) {
-      return {
-        'success': false,
-        'message': e.response?.data['message'] ?? 'Login failed'
-      };
-    }
+    final data = await _api.login(email: email, password: password);
+    final token = data['token'] as String;
+    final user = UserModel.fromJson(data['user'] as Map<String, dynamic>);
+
+    await StorageService.saveToken(token);
+    await StorageService.saveUser(jsonEncode(user.toJson()));
+
+    return user;
   }
 
-  // LOGOUT
+  Future<void> resendOtp(String userId) async {
+    await _api.resendOtp(userId);
+  }
+
   Future<void> logout() async {
     try {
-      await ApiService.post('/auth/logout', {});
-    } catch (e) {
-      // ignore error, clear locally anyway
-    }
+      await _api.logout();
+    } catch (_) {}
     await StorageService.clearAll();
-    ApiService.clearAuthToken();
   }
 
-  // FORGOT PASSKEY
-  Future<Map<String, dynamic>> forgotPasskey({
-    required String mobile,
-  }) async {
-    try {
-      final response = await ApiService.post('/auth/forgot-passkey', {
-        'mobile': mobile,
-      });
-      return {'success': true, 'data': response.data};
-    } on DioException catch (e) {
-      return {
-        'success': false,
-        'message': e.response?.data['message'] ?? 'Failed'
-      };
-    }
+  Future<UserModel?> getStoredUser() async {
+    final json = await StorageService.getUser();
+    if (json == null) return null;
+    return UserModel.fromJson(jsonDecode(json) as Map<String, dynamic>);
   }
 
-  // RESEND OTP
-  Future<Map<String, dynamic>> resendOtp({
-    required String email,
-  }) async {
-    try {
-      final response = await ApiService.post('/auth/resend-otp', {
-        'email': email,
-      });
-      return {'success': true, 'data': response.data};
-    } on DioException catch (e) {
-      return {
-        'success': false,
-        'message': e.response?.data['message'] ?? 'Failed'
-      };
-    }
+  Future<bool> isLoggedIn() async {
+    final token = await StorageService.getToken();
+    return token != null && token.isNotEmpty;
   }
 }
