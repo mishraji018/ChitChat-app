@@ -209,7 +209,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   // Step 3.3: Send message via provider
                   ref.read(messageProvider(widget.conversationId).notifier).sendTextMessage(
                     text: text.trim(),
-                    receiverId: widget.receiverId ?? 'dummy_receiver',
+                    receiverId: widget.receiverId ?? '',
                     replyTo: ref.read(replyToMessageProvider),
                   );
                   _textController.clear();
@@ -244,8 +244,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           '/contact-info/${widget.receiverId}',
           extra: {
             'conversationId': widget.conversationId,
-            'name': 'John Doe',
-            'avatar': 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+            'name': 'Contact',
+            'avatar': '',
             'about': 'Hey there! I am using ChitChat.',
           },
         ),
@@ -256,7 +256,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 CircleAvatar(
                   radius: 18,
                   backgroundColor: colorScheme.primary.withValues(alpha: 0.2),
-                  child: Text('JD', style: TextStyle(color: colorScheme.primary, fontSize: 14, fontWeight: FontWeight.bold)),
+                  child: Text('C', style: TextStyle(color: colorScheme.primary, fontSize: 14, fontWeight: FontWeight.bold)),
                 ),
                 if (isOnline) Positioned(
                   bottom: 0,
@@ -279,7 +279,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'John Doe',
+                    'Contact',
                     style: TextStyle(color: colorScheme.onSurface, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   Text(
@@ -303,8 +303,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 '/contact-info/${widget.receiverId}',
                 extra: {
                   'conversationId': widget.conversationId,
-                  'name': 'John Doe',
-                  'avatar': 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+                  'name': 'Contact',
+                  'avatar': '',
                   'about': 'Hey there! I am using ChitChat.',
                 },
               );

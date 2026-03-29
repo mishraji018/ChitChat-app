@@ -81,7 +81,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           child: Column(
             children: [
               const SizedBox(height: 16),
-              Text('🐻', style: TextStyle(fontSize: 56)),
+              const Text('🐻', style: TextStyle(fontSize: 56)),
               const SizedBox(height: 8),
               Text('Join ChitChat',
                   style: theme.textTheme.headlineSmall

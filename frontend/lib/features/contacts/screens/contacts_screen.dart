@@ -33,65 +33,89 @@ class ContactsScreen extends ConsumerWidget {
             children: [
               const SizedBox(height: kToolbarHeight), // Manual spacer instead of AppBar
               Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-                  itemCount: sortedLetters.length + 1, // +1 for invite banner
-                  itemBuilder: (context, index) {
-                    if (index == 0) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: _buildInviteBanner(colorScheme, isDark),
-                      );
-                    }
-                    
-                    final letter = sortedLetters[index - 1];
-                    final letterContacts = grouped[letter]!;
-                    
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(8, 24, 8, 12),
-                          child: Text(
-                            letter,
-                            style: TextStyle(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 16,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                        ),
-                        GlassCard(
-                          isDark: isDark,
-                          padding: EdgeInsets.zero, // Zero padding for list children
-                          radius: 28,
-                          child: Column(
-                            children: List.generate(letterContacts.length, (idx) {
-                              final contact = letterContacts[idx];
-                              return Column(
-                                children: [
-                                  _ContactListTile(contact: contact, isDark: isDark),
-                                  if (idx < letterContacts.length - 1)
-                                    Divider(
-                                      height: 1,
-                                      indent: 72,
-                                      endIndent: 16,
-                                      color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
-                                    ),
-                                ],
-                              );
-                            }),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                child: filteredContacts.isEmpty
+                    ? _buildEmptyState(colorScheme)
+                    : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                        itemCount: sortedLetters.length + 1, // +1 for invite banner
+                        itemBuilder: (context, index) {
+                          if (index == 0) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: _buildInviteBanner(colorScheme, isDark),
+                            );
+                          }
+
+                          final letter = sortedLetters[index - 1];
+                          final letterContacts = grouped[letter]!;
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(8, 24, 8, 12),
+                                child: Text(
+                                  letter,
+                                  style: TextStyle(
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 16,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                              ),
+                              GlassCard(
+                                isDark: isDark,
+                                padding: EdgeInsets.zero, // Zero padding for list children
+                                radius: 28,
+                                child: Column(
+                                  children: List.generate(letterContacts.length, (idx) {
+                                    final contact = letterContacts[idx];
+                                    return Column(
+                                      children: [
+                                        _ContactListTile(contact: contact, isDark: isDark),
+                                        if (idx < letterContacts.length - 1)
+                                          Divider(
+                                            height: 1,
+                                            indent: 72,
+                                            endIndent: 16,
+                                            color: isDark
+                                                ? Colors.white.withValues(alpha: 0.05)
+                                                : Colors.black.withValues(alpha: 0.03),
+                                          ),
+                                      ],
+                                    );
+                                  }),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(ColorScheme colorScheme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text('👥', style: TextStyle(fontSize: 48)),
+          const SizedBox(height: 16),
+          Text(
+            'No contacts found',
+            style: TextStyle(
+              color: colorScheme.secondary,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,93 +1,90 @@
-import 'dart:convert';
-
 class ChatModel {
   final String id;
   final String name;
   final String lastMessage;
-  final String timestamp;
+  final String time;
   final int unreadCount;
   final bool isOnline;
-  final bool isPinned;
-  final bool isMuted;
-  final bool isArchived;
-  final String? avatarUrl;
-  final String messageStatus; // 'sent', 'delivered', 'read', or ''
+  final bool isGroup;
+  final String avatar;
 
-  ChatModel({
+  const ChatModel({
     required this.id,
     required this.name,
     required this.lastMessage,
-    required this.timestamp,
-    this.unreadCount = 0,
-    this.isOnline = false,
-    this.isPinned = false,
-    this.isMuted = false,
-    this.isArchived = false,
-    this.avatarUrl,
-    this.messageStatus = '',
+    required this.time,
+    required this.unreadCount,
+    required this.isOnline,
+    required this.isGroup,
+    required this.avatar,
   });
 
-  ChatModel copyWith({
-    String? id,
-    String? name,
-    String? lastMessage,
-    String? timestamp,
-    int? unreadCount,
-    bool? isOnline,
-    bool? isPinned,
-    bool? isMuted,
-    bool? isArchived,
-    String? avatarUrl,
-    String? messageStatus,
-  }) {
+  factory ChatModel.fromJson(Map<String, dynamic> json) {
+    final participants = json['participants'] as List<dynamic>? ?? [];
+    final isGroup = json['isGroup'] as bool? ?? false;
+
+    String name = '';
+    String avatar = '';
+    bool isOnline = false;
+
+    if (isGroup) {
+      name = json['groupName'] as String? ?? 'Group';
+      avatar = json['groupPhoto'] as String? ?? '';
+    } else {
+      final other = participants.isNotEmpty
+          ? participants.first as Map<String, dynamic>
+          : <String, dynamic>{};
+      name = other['name'] as String? ?? 'Unknown';
+      avatar = other['profilePhoto'] as String? ?? '';
+      isOnline = other['isOnline'] as bool? ?? false;
+    }
+
+    final lastMsg = json['lastMessage'] as Map<String, dynamic>?;
+    String lastMessageText = '';
+    if (lastMsg != null) {
+      final type = lastMsg['type'] as String? ?? 'text';
+      if (type == 'text') {
+        lastMessageText = lastMsg['content'] as String? ?? '';
+      } else if (type == 'image') {
+        lastMessageText = '📷 Photo';
+      } else if (type == 'video') {
+        lastMessageText = '🎥 Video';
+      } else if (type == 'audio') {
+        lastMessageText = '🎵 Audio';
+      } else {
+        lastMessageText = '📎 Attachment';
+      }
+    }
+
+    final updatedAt = json['updatedAt'] as String?;
+    String timeStr = '';
+    if (updatedAt != null) {
+      final dt = DateTime.tryParse(updatedAt);
+      if (dt != null) {
+        final now = DateTime.now();
+        final diff = now.difference(dt);
+        if (diff.inMinutes < 60) {
+          timeStr = '${diff.inMinutes} min ago';
+        } else if (diff.inHours < 24) {
+          timeStr = '${diff.inHours} hr ago';
+        } else if (diff.inDays == 1) {
+          timeStr = 'Yesterday';
+        } else {
+          const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+          timeStr = days[dt.weekday - 1];
+        }
+      }
+    }
+
     return ChatModel(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      lastMessage: lastMessage ?? this.lastMessage,
-      timestamp: timestamp ?? this.timestamp,
-      unreadCount: unreadCount ?? this.unreadCount,
-      isOnline: isOnline ?? this.isOnline,
-      isPinned: isPinned ?? this.isPinned,
-      isMuted: isMuted ?? this.isMuted,
-      isArchived: isArchived ?? this.isArchived,
-      avatarUrl: avatarUrl ?? this.avatarUrl,
-      messageStatus: messageStatus ?? this.messageStatus,
+      id: json['_id'] as String? ?? '',
+      name: name,
+      lastMessage: lastMessageText,
+      time: timeStr,
+      unreadCount: json['unreadCount'] as int? ?? 0,
+      isOnline: isOnline,
+      isGroup: isGroup,
+      avatar: avatar,
     );
   }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      'lastMessage': lastMessage,
-      'timestamp': timestamp,
-      'unreadCount': unreadCount,
-      'isOnline': isOnline,
-      'isPinned': isPinned,
-      'isMuted': isMuted,
-      'isArchived': isArchived,
-      'avatarUrl': avatarUrl,
-      'messageStatus': messageStatus,
-    };
-  }
-
-  factory ChatModel.fromMap(Map<String, dynamic> map) {
-    return ChatModel(
-      id: map['id'] ?? '',
-      name: map['name'] ?? '',
-      lastMessage: map['lastMessage'] ?? '',
-      timestamp: map['timestamp'] ?? '',
-      unreadCount: map['unreadCount']?.toInt() ?? 0,
-      isOnline: map['isOnline'] ?? false,
-      isPinned: map['isPinned'] ?? false,
-      isMuted: map['isMuted'] ?? false,
-      isArchived: map['isArchived'] ?? false,
-      avatarUrl: map['avatarUrl'],
-      messageStatus: map['messageStatus'] ?? '',
-    );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory ChatModel.fromJson(String source) => ChatModel.fromMap(json.decode(source));
 }

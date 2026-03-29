@@ -258,7 +258,7 @@ class AccountSettingsScreen extends ConsumerWidget {
         ),
         data: (account) => ListView(children: [
           // ── LOGIN & VERIFICATION ──────────────────────────────
-          _SectionHeader('LOGIN & VERIFICATION'),
+          const _SectionHeader('LOGIN & VERIFICATION'),
 
           _ATile(
             icon: Icons.key_outlined,
@@ -300,7 +300,7 @@ class AccountSettingsScreen extends ConsumerWidget {
           const SizedBox(height: 8),
 
           // ── ACCOUNT SETTINGS ──────────────────────────────────
-          _SectionHeader('ACCOUNT SETTINGS'),
+          const _SectionHeader('ACCOUNT SETTINGS'),
 
           _ATile(
             icon: Icons.swap_horiz_rounded,

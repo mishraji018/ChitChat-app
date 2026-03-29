@@ -48,25 +48,47 @@ class NewGroupScreen extends ConsumerWidget {
           if (selectedIds.isNotEmpty) _buildSelectedList(selectedContacts, ref, colorScheme),
           _buildSearchBar(ref, colorScheme),
           Expanded(
-            child: ListView.builder(
-              itemCount: filteredContacts.length,
-              itemBuilder: (context, index) {
-                final contact = filteredContacts[index];
-                final isSelected = selectedIds.contains(contact.id);
-                return _SelectContactTile(
-                  contact: contact,
-                  isSelected: isSelected,
-                  onTap: () {
-                    final newSet = Set<String>.from(selectedIds);
-                    if (isSelected) {
-                      newSet.remove(contact.id);
-                    } else {
-                      newSet.add(contact.id);
-                    }
-                    ref.read(selectedContactsProvider.notifier).state = newSet;
-                  },
-                );
-              },
+            child: filteredContacts.isEmpty
+                ? _buildEmptyState(colorScheme)
+                : ListView.builder(
+                    itemCount: filteredContacts.length,
+                    itemBuilder: (context, index) {
+                      final contact = filteredContacts[index];
+                      final isSelected = selectedIds.contains(contact.id);
+                      return _SelectContactTile(
+                        contact: contact,
+                        isSelected: isSelected,
+                        onTap: () {
+                          final newSet = Set<String>.from(selectedIds);
+                          if (isSelected) {
+                            newSet.remove(contact.id);
+                          } else {
+                            newSet.add(contact.id);
+                          }
+                          ref.read(selectedContactsProvider.notifier).state = newSet;
+                        },
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(ColorScheme colorScheme) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('👥', style: TextStyle(fontSize: 48)),
+          const SizedBox(height: 16),
+          Text(
+            'No contacts found',
+            style: TextStyle(
+              color: colorScheme.secondary,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

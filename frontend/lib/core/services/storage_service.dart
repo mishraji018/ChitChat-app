@@ -6,8 +6,8 @@ class StorageService {
   static const _tokenKey = 'auth_token';
   static const _userKey = 'auth_user';
 
-  static final FlutterSecureStorage _secure = FlutterSecureStorage(
-    aOptions: const AndroidOptions(encryptedSharedPreferences: true),
+  static const FlutterSecureStorage _secure = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
 
   // ── TOKEN ─────────────────────────────────────────────────────

@@ -68,7 +68,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 32),
-                Text('🐻', style: TextStyle(fontSize: 72)),
+                const Text('🐻', style: TextStyle(fontSize: 72)),
                 const SizedBox(height: 8),
                 Text('ChitChat',
                     style: theme.textTheme.headlineMedium

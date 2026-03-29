@@ -3,7 +3,9 @@ const {
   searchUsers, 
   getUserById, 
   syncContacts,
-  updateSettings
+  updateSettings,
+  addContact,
+  getBlockedUsers
 } = require('../controllers/user.controller');
 const protect = require('../middleware/auth.middleware');
 
@@ -19,5 +21,7 @@ router.put('/mute/:id', (req, res, next) => require('../controllers/user.control
 router.put('/unmute/:id', (req, res, next) => require('../controllers/user.controller').unmuteConversation(req, res, next));
 router.get('/:id', getUserById);
 router.post('/sync', syncContacts);
+router.post('/contacts', addContact);
+router.get('/blocked', getBlockedUsers);
 
 module.exports = router;

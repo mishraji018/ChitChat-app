@@ -95,18 +95,25 @@ const UserSchema = new mongoose.Schema({
     blockedContacts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     appLock: { type: Boolean, default: false },
   },
+  contacts: [{
+    name: { type: String, required: true },
+    phone: { type: String, required: true },
+    avatar: { type: String }, // Local nickname avatar or encoded image
+    user: { type: mongoose.Schema.ObjectId, ref: 'User' } // Reference to actual user if they exist
+  }],
 }, {
   toJSON: { virtuals: true },
   toObject: { virtuals: true },
 });
 
-// Encrypt OTP / Password if needed
+// Hash OTP before saving (only when modified and present)
 UserSchema.pre('save', async function (next) {
-  if (!this.isModified('otp')) {
-    next();
+  if (!this.isModified('otp') || !this.otp) {
+    return next();
   }
   const salt = await bcrypt.genSalt(10);
   this.otp = await bcrypt.hash(this.otp, salt);
+  next();
 });
 
 // Sign JWT and return

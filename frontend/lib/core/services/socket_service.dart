@@ -1,4 +1,5 @@
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:flutter/foundation.dart';
 
 class SocketService {
   static IO.Socket? _socket;
@@ -6,34 +7,40 @@ class SocketService {
 
   static bool get isConnected => _isConnected;
 
-  // Connect to socket server
+  // Connect to socket server (ERROR 7 FIX — try-catch & recursion limit)
   static void connect(String token) {
-    if (_socket != null && _socket!.connected) return;
+    try {
+      if (_socket != null && _socket!.connected) return;
 
-    _socket = IO.io(
-      'http://10.0.2.2:5000',
-      IO.OptionBuilder()
-        .setTransports(['websocket'])
-        .disableAutoConnect()
-        .setAuth({'token': token})
-        .build(),
-    );
+      _socket = IO.io(
+        'http://10.0.2.2:5000',
+        IO.OptionBuilder()
+          .setTransports(['websocket'])
+          .disableAutoConnect()
+          .setAuth({'token': token})
+          .setReconnectionAttempts(3) // Limit to 3 attempts (Error 7)
+          .build(),
+      );
 
-    _socket!.connect();
+      _socket!.connect();
 
-    _socket!.onConnect((_) {
-      _isConnected = true;
-      print('✅ Socket connected');
-    });
+      _socket!.onConnect((_) {
+        _isConnected = true;
+        debugPrint('✅ Socket connected');
+      });
 
-    _socket!.onDisconnect((_) {
-      _isConnected = false;
-      print('❌ Socket disconnected');
-    });
+      _socket!.onDisconnect((_) {
+        _isConnected = false;
+        debugPrint('❌ Socket disconnected');
+      });
 
-    _socket!.onConnectError((error) {
-      print('Socket connect error: $error');
-    });
+      _socket!.onConnectError((error) {
+        // Log to console without crashing or infinite spam
+        debugPrint('Socket connect error: $error');
+      });
+    } catch (e) {
+      debugPrint('Socket initial connection error: $e');
+    }
   }
 
   // Disconnect

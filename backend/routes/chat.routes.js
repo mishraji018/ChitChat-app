@@ -1,22 +1,28 @@
 const express = require('express');
-const { 
-  getPrivateChat, 
-  createGroup, 
-  getConversations, 
-  getMessages, 
-  deleteMessage 
-} = require('../controllers/chat.controller');
-const protect = require('../middleware/auth.middleware');
-
 const router = express.Router();
+const protect = require('../middleware/auth.middleware');
+const {
+  getChats,
+  getChatById,
+  createChat,
+  createGroupChat,
+  sendMessage,
+  getMessages,
+  editMessage,
+  deleteMessage,
+  reactToMessage,
+  clearChat,
+} = require('../controllers/chat.controller');
 
-router.use(protect); // All chat routes protected
-
-router.post('/private', getPrivateChat);
-router.post('/group', createGroup);
-router.get('/', getConversations);
-router.get('/:id/messages', getMessages);
-router.delete('/:id/clear', clearChat);
-router.delete('/messages/:id', deleteMessage);
+router.get('/', protect, getChats);
+router.get('/:id', protect, getChatById);
+router.post('/', protect, createChat);
+router.post('/group', protect, createGroupChat);
+router.post('/:id/messages', protect, sendMessage);
+router.get('/:id/messages', protect, getMessages);
+router.put('/messages/:messageId', protect, editMessage);
+router.delete('/messages/:messageId', protect, deleteMessage);
+router.post('/messages/:messageId/react', protect, reactToMessage);
+router.delete('/:id/clear', protect, clearChat);
 
 module.exports = router;

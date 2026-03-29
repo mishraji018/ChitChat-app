@@ -1,5 +1,5 @@
 const User = require('../models/User');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 
@@ -38,12 +38,16 @@ exports.signup = async (req, res) => {
       isVerified: false,
     });
 
-    await transporter.sendMail({
-      from: `ChitChat 🐻 <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: 'Your ChitChat OTP',
-      html: `<h2>Your OTP is: <b>${otp}</b></h2><p>Valid for 10 minutes.</p>`,
-    });
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      await transporter.sendMail({
+        from: `ChitChat 🐻 <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'Your ChitChat OTP',
+        html: `<h2>Your OTP is: <b>${otp}</b></h2><p>Valid for 10 minutes.</p>`,
+      });
+    } else {
+      console.log(`[DEV] OTP for ${email}: ${otp}`);
+    }
 
     res.status(201).json({
       success: true,
@@ -66,7 +70,9 @@ exports.verifyOtp = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
-    if (user.otp !== otp)
+    // Use bcrypt comparison because pre-save hook hashes OTP
+    const isMatch = await user.matchOtp(otp);
+    if (!isMatch)
       return res.status(400).json({ success: false, message: 'Invalid OTP' });
 
     if (new Date() > user.otpExpiry)
@@ -149,12 +155,16 @@ exports.resendOtp = async (req, res) => {
     user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    await transporter.sendMail({
-      from: `ChitChat 🐻 <${process.env.EMAIL_USER}>`,
-      to: user.email,
-      subject: 'ChitChat — New OTP',
-      html: `<h2>Your new OTP: <b>${otp}</b></h2><p>Valid for 10 minutes.</p>`,
-    });
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      await transporter.sendMail({
+        from: `ChitChat 🐻 <${process.env.EMAIL_USER}>`,
+        to: user.email,
+        subject: 'ChitChat — New OTP',
+        html: `<h2>Your new OTP: <b>${otp}</b></h2><p>Valid for 10 minutes.</p>`,
+      });
+    } else {
+      console.log(`[DEV] Resend OTP for ${user.email}: ${otp}`);
+    }
 
     res.json({ success: true, message: 'OTP resent' });
   } catch (error) {

@@ -30,13 +30,32 @@ A modern real-time messaging and calling application built using **Flutter & Dar
 ## 📂 Project Structure
 
 ```
-lib/
- ├── core/
- ├── data/
- ├── features/
- ├── shared/
- └── main.dart
+chitchat-app/
+ ├── android/           # Android platform files
+ ├── ios/               # iOS platform files
+ ├── lib/               # Frontend (Flutter) Source Code
+ │    ├── core/         # Core services, routing, and constants
+ │    ├── data/         # Data providers, models, and repositories
+ │    ├── features/     # Feature-based screens and logic
+ │    └── shared/       # Reusable UI widgets and components
+ ├── assets/            # App assets (images, fonts)
+ ├── backend/           # Node.js Server & Logic
+ └── pubspec.yaml       # Project configuration
 ```
+
+---
+
+## 🔒 Security & Performance (Latest Updates)
+
+### 1. App Lock & Privacy
+- **Secure Sequential Lock**: PIN verification followed by optional Fingerprint/Biometric scan.
+- **Blocked Contacts**: Centralized management screen to block/unblock users with real-time backend sync.
+- **Global Protection**: App-wide redirect logic prevents unauthorized access when locked.
+
+### 2. High Performance Rendering
+- **Optimized Glassmorphism**: Fine-tuned blur sigmas for high FPS and smooth scrolling.
+- **Snappy Transitions**: Custom 200ms fade transitions for an "instant" navigation feel.
+- **Improved Startup**: Reduced splash screen duration by 60% for faster app entry.
 
 ---
 

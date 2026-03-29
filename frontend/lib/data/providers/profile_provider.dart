@@ -39,7 +39,7 @@ class ProfileNotifier extends StateNotifier<UserProfile> {
   static const _mobileKey = 'profile_mobile';
   static const _avatarKey = 'profile_avatar';
 
-  ProfileNotifier() : super(UserProfile(name: 'John Doe', bio: 'Living the dream!', mobile: '+91 9876543210')) {
+  ProfileNotifier() : super(UserProfile(name: '', bio: '', mobile: '')) {
     _loadProfile();
   }
 

@@ -21,9 +21,6 @@ class _AppLockVerifyScreenState extends ConsumerState<AppLockVerifyScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkBiometrics();
-    });
   }
 
   Future<void> _checkBiometrics() async {
@@ -128,7 +125,12 @@ class _AppLockVerifyScreenState extends ConsumerState<AppLockVerifyScreen> {
                           autofocus: true,
                           onCompleted: (pin) {
                             if (pin == savedPin) {
-                              _unlock();
+                              final biometricsEnabled = ref.read(appBiometricsEnabledProvider);
+                              if (biometricsEnabled) {
+                                _checkBiometrics();
+                              } else {
+                                _unlock();
+                              }
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(

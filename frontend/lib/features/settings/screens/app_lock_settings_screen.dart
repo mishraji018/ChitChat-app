@@ -101,10 +101,15 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
                   value: appLockEnabled,
                   activeThumbColor: colorScheme.primary,
                   onChanged: (val) {
-                    if (val && !hasPin) {
-                      _showPinSheet(context, ref, colorScheme, isDark);
+                    if (val) {
+                      if (!hasPin) {
+                        _showPinSheet(context, ref, colorScheme, isDark);
+                      } else {
+                        ref.read(settingsProvider.notifier).setBool('app_lock_enabled', true);
+                      }
                     } else {
-                      ref.read(settingsProvider.notifier).setBool('app_lock_enabled', val);
+                      // Prompt for PIN to verify before disabling
+                      _showPinSheet(context, ref, colorScheme, isDark, isVerifying: true);
                     }
                   },
                 ),
@@ -184,9 +189,9 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
     );
   }
 
-  void _showPinSheet(BuildContext context, WidgetRef ref, ColorScheme colorScheme, bool isDark, {bool isChanging = false}) {
+  void _showPinSheet(BuildContext context, WidgetRef ref, ColorScheme colorScheme, bool isDark, {bool isChanging = false, bool isVerifying = false}) {
     final currentPin = ref.read(appPinProvider);
-    bool isAskingOld = isChanging;
+    bool isAskingOld = isChanging || isVerifying;
     bool hasError = false;
 
     showModalBottomSheet(
@@ -223,7 +228,7 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        isAskingOld ? 'Enter Current PIN' : (isChanging ? 'Enter New PIN' : 'Create PIN'),
+                        isAskingOld ? (isVerifying ? 'Verify PIN to Disable' : 'Enter Current PIN') : (isChanging ? 'Enter New PIN' : 'Create PIN'),
                         style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
                       ),
                       if (hasError) ...[
@@ -244,6 +249,11 @@ class _AppLockSettingsScreenState extends ConsumerState<AppLockSettingsScreen> {
                         onCompleted: (pin) {
                           if (isAskingOld) {
                             if (pin == currentPin) {
+                              if (isVerifying) {
+                                ref.read(settingsProvider.notifier).setBool('app_lock_enabled', false);
+                                Navigator.pop(context);
+                                return;
+                              }
                               setSheetState(() { isAskingOld = false; hasError = false; });
                             } else {
                               setSheetState(() => hasError = true);

@@ -41,7 +41,7 @@ class NewChatScreen extends ConsumerWidget {
                   iconColor: Colors.blue,
                   title: 'New Contact',
                   subtitle: 'Add a contact',
-                  onTap: () {},
+                  onTap: () => context.push('/add-contact'),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
@@ -55,7 +55,10 @@ class NewChatScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-                ...filteredContacts.map((contact) => _ContactTile(contact: contact)),
+                if (filteredContacts.isEmpty)
+                  _buildEmptyState(colorScheme)
+                else
+                  ...filteredContacts.map((contact) => _ContactTile(contact: contact)),
               ],
             ),
           ),
@@ -88,6 +91,29 @@ class NewChatScreen extends ConsumerWidget {
             border: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(vertical: 15),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(ColorScheme colorScheme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 60),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('👥', style: TextStyle(fontSize: 48)),
+            const SizedBox(height: 16),
+            Text(
+              'No contacts found',
+              style: TextStyle(
+                color: colorScheme.secondary,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );

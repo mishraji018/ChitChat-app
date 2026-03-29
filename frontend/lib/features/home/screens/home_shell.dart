@@ -2,10 +2,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../data/providers/chat_provider.dart';
 import '../../../data/providers/settings_provider.dart';
 import '../../../data/providers/auth_provider.dart';
-import '../../../core/router/app_router.dart';
+import '../../../data/providers/calls_provider.dart';
+import '../../../core/router/app_router.dart'; // ERROR FIX — For isAppUnlockedProvider
+
+// ERROR 3, 4, 6 FIX — Missing providers
+final isSearchExpandedProvider = StateProvider<bool>((ref) => false);
 
 class HomeShell extends ConsumerStatefulWidget {
   final Widget child;
@@ -27,7 +30,6 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
       final authState = ref.read(authProvider);
       final userId = authState.user?.id;
       if (userId != null) {
-        // Store userId in settings so setString(app_pin) can use it
         ref.read(settingsProvider.notifier).setCurrentUserId(userId);
         await ref.read(settingsProvider.notifier).loadSecurePinForUser(userId);
       }
@@ -43,7 +45,6 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // On resume, if app lock is enabled relock by resetting isAppUnlocked
     if (state == AppLifecycleState.resumed) {
       final appLockEnabled = ref.read(appLockEnabledProvider);
       if (appLockEnabled) {
@@ -52,7 +53,6 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
       }
       if (_wasOffline) {
         _wasOffline = false;
-        // Relock on coming back online
         if (appLockEnabled) {
           ref.read(isAppUnlockedProvider.notifier).state = false;
           if (mounted) context.go('/app-lock-verify');
@@ -65,76 +65,26 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
 
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
-      case 0:
-        context.go('/home/chats');
-        break;
-      case 1:
-        context.go('/home/calls');
-        break;
-      case 2:
-        context.go('/home/contacts');
-        break;
-      case 3:
-        context.go('/home/settings');
-        break;
+      case 0: context.go('/home/chats'); break;
+      case 1: context.go('/home/calls'); break;
+      case 2: context.go('/home/contacts'); break;
+      case 3: context.go('/home/settings'); break;
     }
   }
 
-  void _exitSelectionMode() {
-    ref.read(isSelectionModeProvider.notifier).state = false;
-    ref.read(selectedChatsProvider.notifier).state = {};
-  }
-
-  void _bulkArchive() {
-    final notifier = ref.read(chatListProvider.notifier);
-    final selected = ref.read(selectedChatsProvider);
-    for (final id in selected) {
-      notifier.archiveChat(id);
-    }
-    _exitSelectionMode();
-  }
-
-  void _bulkDelete() {
-    final notifier = ref.read(chatListProvider.notifier);
-    final selected = ref.read(selectedChatsProvider);
-    for (final id in selected) {
-      notifier.deleteChat(id);
-    }
-    _exitSelectionMode();
-  }
-
-  void _bulkPin() {
-    final notifier = ref.read(chatListProvider.notifier);
-    final selected = ref.read(selectedChatsProvider);
-    for (final id in selected) {
-      notifier.pinChat(id);
-    }
-    _exitSelectionMode();
-  }
-
-  void _bulkMute() {
-    final notifier = ref.read(chatListProvider.notifier);
-    final selected = ref.read(selectedChatsProvider);
-    for (final id in selected) {
-      notifier.muteChat(id);
-    }
-    _exitSelectionMode();
-  }
 
   @override
   Widget build(BuildContext context) {
-    // Verification log as requested
-    final brightness = MediaQuery.of(context).platformBrightness;
-    debugPrint('Device brightness: $brightness');
-
     final location = GoRouterState.of(context).uri.path;
     int selectedIndex = 0;
     if (location.startsWith('/home/calls')) {
       selectedIndex = 1;
-    } else if (location.startsWith('/home/contacts')) selectedIndex = 2;
-    else if (location.startsWith('/home/settings')) selectedIndex = 3;
-    final isSelectionMode = ref.watch(isSelectionModeProvider);
-    final selectedChatsCount = ref.watch(selectedChatsProvider).length;
+    } else if (location.startsWith('/home/contacts')) {
+      selectedIndex = 2;
+    } else if (location.startsWith('/home/settings')) {
+      selectedIndex = 3;
+    }
+
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
@@ -142,119 +92,202 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
     return Scaffold(
       extendBody: true,
       extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent, // Let GlassBackground handle it
-      appBar: isSelectionMode
-          ? AppBar(
-              backgroundColor: isDark ? Colors.black.withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.55),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: AppBar(
+              title: Row(
+                children: [
+                  const Text('🐻', style: TextStyle(fontSize: 22)),
+                  const SizedBox(width: 8),
+                  Text('ChitChat',
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                      )),
+                ],
+              ),
+              backgroundColor: isDark
+                  ? Colors.black.withOpacity(0.45)
+                  : Colors.white.withOpacity(0.55),
               elevation: 0,
-              flexibleSpace: ClipRect(
-                child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20), child: Container(color: Colors.transparent)),
-              ),
-              leading: IconButton(
-                icon: Icon(Icons.close, color: colorScheme.onSurface),
-                onPressed: _exitSelectionMode,
-              ),
-              title: Text('$selectedChatsCount', style: TextStyle(color: colorScheme.onSurface)),
               actions: [
-                IconButton(icon: Icon(Icons.push_pin_outlined, color: colorScheme.onSurface), onPressed: _bulkPin),
-                IconButton(icon: Icon(Icons.volume_off_outlined, color: colorScheme.onSurface), onPressed: _bulkMute),
-                IconButton(icon: Icon(Icons.archive_outlined, color: colorScheme.onSurface), onPressed: _bulkArchive),
-                IconButton(icon: Icon(Icons.delete_outline, color: colorScheme.onSurface), onPressed: _bulkDelete),
-              ],
-            )
-          : PreferredSize(
-              preferredSize: const Size.fromHeight(kToolbarHeight),
-              child: ClipRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                  child: AppBar(
-                    title: Row(
-                      children: [
-                        const Text('🐻', style: TextStyle(fontSize: 22)),
-                        const SizedBox(width: 8),
-                        Text('ChitChat',
-                            style: TextStyle(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 22,
-                            )),
-                      ],
-                    ),
-                    backgroundColor: isDark ? Colors.black.withValues(alpha: 0.45) : Colors.white.withValues(alpha: 0.55),
-                    elevation: 0,
-                    actions: selectedIndex == 0 ? [
-                      IconButton(
-                        icon: Icon(Icons.search, color: colorScheme.primary),
-                        onPressed: () {
-                          final current = ref.read(isSearchExpandedProvider);
-                          ref.read(isSearchExpandedProvider.notifier).state = !current;
-                        },
+                if (selectedIndex != 2 && selectedIndex != 3)
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  onSelected: (value) {
+                    if (value == 'missed_calls') {
+                      ref.read(callFilterProvider.notifier).state = 'Missed';
+                      return;
+                    }
+                    if (value == 'call_settings') {
+                      context.push('/notifications');
+                      return;
+                    }
+                    switch (value) {
+                      case 'new_group':
+                        context.push('/new-group');
+                        break;
+                      case 'new_broadcast':
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('New Broadcast — Coming Soon 🚀'),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                        );
+                        break;
+                      case 'linked_devices':
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Linked Devices — Coming Soon 🚀'),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                        );
+                        break;
+                      case 'starred':
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content:
+                                const Text('Starred Messages — Coming Soon 🚀'),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                        );
+                        break;
+                      case 'payments':
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Payments — Coming Soon 🚀'),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                        );
+                        break;
+                      case 'settings':
+                        context.go('/home/settings');
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) {
+                    if (selectedIndex == 1) {
+                      return [
+                        PopupMenuItem(
+                          value: 'missed_calls',
+                          child: Row(children: [
+                            Icon(Icons.call_missed,
+                                color: Theme.of(context).colorScheme.onSurface),
+                            const SizedBox(width: 12),
+                            const Text('Missed calls'),
+                          ]),
+                        ),
+                        PopupMenuItem(
+                          value: 'call_settings',
+                          child: Row(children: [
+                            Icon(Icons.settings_outlined,
+                                color: Theme.of(context).colorScheme.onSurface),
+                            const SizedBox(width: 12),
+                            const Text('Call settings'),
+                          ]),
+                        ),
+                      ];
+                    }
+                    return [
+                      PopupMenuItem(
+                        value: 'new_group',
+                        child: Row(children: [
+                          Icon(Icons.group_add_outlined,
+                              color: Theme.of(context).colorScheme.onSurface),
+                          const SizedBox(width: 12),
+                          const Text('New group'),
+                        ]),
                       ),
-                      PopupMenuButton<String>(
-                        icon: Icon(Icons.more_vert, color: colorScheme.primary),
-                        color: isDark ? const Color(0xFF121212) : colorScheme.surface,
-                        onSelected: (value) {
-                          switch (value) {
-                            case 'new_group':
-                              context.push('/new-group');
-                              break;
-                            case 'new_broadcast':
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Broadcast coming soon!'), backgroundColor: Colors.orange),
-                              );
-                              break;
-                            case 'linked_devices':
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Linked Devices coming soon!'), backgroundColor: Colors.orange),
-                              );
-                              break;
-                            case 'starred_messages':
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Starred Messages coming soon!'), backgroundColor: Colors.orange),
-                              );
-                              break;
-                            case 'settings':
-                              context.go('/home/settings');
-                              break;
-                          }
-                        },
-                        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                          PopupMenuItem(value: 'new_group', child: Text('New Group', style: TextStyle(color: colorScheme.onSurface))),
-                          PopupMenuItem(value: 'new_broadcast', child: Text('New Broadcast', style: TextStyle(color: colorScheme.onSurface))),
-                          PopupMenuItem(value: 'linked_devices', child: Text('Linked Devices', style: TextStyle(color: colorScheme.onSurface))),
-                          PopupMenuItem(value: 'starred_messages', child: Text('Starred Messages', style: TextStyle(color: colorScheme.onSurface))),
-                          PopupMenuItem(value: 'settings', child: Text('Settings', style: TextStyle(color: colorScheme.onSurface))),
-                        ],
+                      PopupMenuItem(
+                        value: 'new_broadcast',
+                        child: Row(children: [
+                          Icon(Icons.campaign_outlined,
+                              color: Theme.of(context).colorScheme.onSurface),
+                          const SizedBox(width: 12),
+                          const Text('New broadcast'),
+                        ]),
                       ),
-                    ] : [],
-                  ),
+                      PopupMenuItem(
+                        value: 'linked_devices',
+                        child: Row(children: [
+                          Icon(Icons.devices_outlined,
+                              color: Theme.of(context).colorScheme.onSurface),
+                          const SizedBox(width: 12),
+                          const Text('Linked devices'),
+                        ]),
+                      ),
+                      PopupMenuItem(
+                        value: 'starred',
+                        child: Row(children: [
+                          Icon(Icons.star_outline_rounded,
+                              color: Theme.of(context).colorScheme.onSurface),
+                          const SizedBox(width: 12),
+                          const Text('Starred messages'),
+                        ]),
+                      ),
+                      PopupMenuItem(
+                        value: 'payments',
+                        child: Row(children: [
+                          Icon(Icons.payments_outlined,
+                              color: Theme.of(context).colorScheme.onSurface),
+                          const SizedBox(width: 12),
+                          const Text('Payments'),
+                        ]),
+                      ),
+                      const PopupMenuDivider(),
+                      PopupMenuItem(
+                        value: 'settings',
+                        child: Row(children: [
+                          Icon(Icons.settings_outlined,
+                              color: Theme.of(context).colorScheme.onSurface),
+                          const SizedBox(width: 12),
+                          const Text('Settings'),
+                        ]),
+                      ),
+                    ];
+                  },
                 ),
-              ),
+              ],
             ),
+          ),
+        ),
+      ),
       body: widget.child,
       bottomNavigationBar: ClipRect(
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Container(
             decoration: BoxDecoration(
-              color: isDark ? Colors.white.withValues(alpha: 0.07) : Colors.white.withValues(alpha: 0.65),
-              border: Border(top: BorderSide(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.9), width: 0.5)),
+              color: isDark ? Colors.white.withOpacity(0.07) : Colors.white.withOpacity(0.65),
+              border: Border(top: BorderSide(color: isDark ? Colors.white.withOpacity(0.1) : Colors.white.withOpacity(0.9), width: 0.5)),
             ),
             child: BottomNavigationBar(
               backgroundColor: Colors.transparent,
               type: BottomNavigationBarType.fixed,
               selectedItemColor: colorScheme.primary,
-              unselectedItemColor: colorScheme.secondary.withValues(alpha: 0.5),
-              selectedFontSize: 11,
-              unselectedFontSize: 11,
+              unselectedItemColor: colorScheme.secondary.withOpacity(0.5),
               elevation: 0,
               currentIndex: selectedIndex,
               onTap: (index) => _onItemTapped(index, context),
               items: const [
-                BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline, size: 24), activeIcon: Icon(Icons.chat_bubble, size: 26), label: 'Chats'),
-                BottomNavigationBarItem(icon: Icon(Icons.phone_outlined, size: 24), activeIcon: Icon(Icons.phone, size: 26), label: 'Calls'),
-                BottomNavigationBarItem(icon: Icon(Icons.person_outline, size: 24), activeIcon: Icon(Icons.person, size: 26), label: 'Contacts'),
-                BottomNavigationBarItem(icon: Icon(Icons.settings_outlined, size: 24), activeIcon: Icon(Icons.settings, size: 26), label: 'Settings'),
+                BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'Chats'),
+                BottomNavigationBarItem(icon: Icon(Icons.phone_outlined), label: 'Calls'),
+                BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Contacts'),
+                BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Settings'),
               ],
             ),
           ),

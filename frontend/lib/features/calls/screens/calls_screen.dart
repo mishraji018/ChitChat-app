@@ -22,7 +22,7 @@ class CallsScreen extends ConsumerWidget {
         isDark: isDark,
         child: Column(
           children: [
-            const SizedBox(height: kToolbarHeight + 20),
+            const SizedBox(height: kToolbarHeight + 50),
             _buildFilterTabs(ref, currentFilter, colorScheme, isDark),
             Expanded(
               child: filteredCalls.isEmpty 
@@ -92,11 +92,15 @@ class CallsScreen extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.phone_missed, size: 60, color: colorScheme.secondary.withValues(alpha: 0.2)),
+          const Text('📞', style: TextStyle(fontSize: 48)),
           const SizedBox(height: 16),
           Text(
             filter == 'Missed' ? 'No missed calls' : 'No calls yet',
-            style: TextStyle(color: colorScheme.secondary, fontSize: 16),
+            style: TextStyle(
+              color: colorScheme.secondary,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),

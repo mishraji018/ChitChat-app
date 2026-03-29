@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../data/providers/privacy_provider.dart';
 
 class PrivacySettingsScreen extends ConsumerWidget {
@@ -94,7 +95,7 @@ class PrivacySettingsScreen extends ConsumerWidget {
           // ──────────────────────────────────────────
           // WHO CAN SEE MY PERSONAL INFO
           // ──────────────────────────────────────────
-          _SectionHeader('WHO CAN SEE MY PERSONAL INFO'),
+          const _SectionHeader('WHO CAN SEE MY PERSONAL INFO'),
           _PTile(
             icon: Icons.shield_outlined,
             title: 'Last seen and online',
@@ -143,7 +144,7 @@ class PrivacySettingsScreen extends ConsumerWidget {
           // ──────────────────────────────────────────
           // MESSAGING
           // ──────────────────────────────────────────
-          _SectionHeader('MESSAGING'),
+          const _SectionHeader('MESSAGING'),
           _PTile(
             icon: Icons.timer_outlined,
             title: 'Default message timer',
@@ -177,7 +178,7 @@ class PrivacySettingsScreen extends ConsumerWidget {
           // ──────────────────────────────────────────
           // CALLS & SECURITY
           // ──────────────────────────────────────────
-          _SectionHeader('CALLS & SECURITY'),
+          const _SectionHeader('CALLS & SECURITY'),
           SwitchListTile(
             secondary: Icon(Icons.phone_disabled_outlined,
                 color: theme.colorScheme.onSurfaceVariant),
@@ -196,17 +197,15 @@ class PrivacySettingsScreen extends ConsumerWidget {
           _PTile(
             icon: Icons.block,
             title: 'Blocked contacts',
-            subtitle: 'None',
-            onTap: () => _comingSoon(context, 'Blocked contacts'),
+            subtitle: 'Manage blocked users',
+            onTap: () => context.push('/blocked-contacts'),
           ),
           const _Div(),
           _PTile(
             icon: Icons.lock_outlined,
             title: 'App lock',
             subtitle: s.appLock ? 'Enabled' : 'Disabled',
-            onTap: () => ref
-                .read(privacyProvider.notifier)
-                .updateField({'appLock': !s.appLock}),
+            onTap: () => context.push('/app-lock-settings'),
           ),
           const SizedBox(height: 32),
         ]),

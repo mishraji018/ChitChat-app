@@ -25,6 +25,11 @@ import '../../features/chat/screens/new_group_info_screen.dart';
 import '../../features/chat/screens/contact_profile_screen.dart';
 import '../../features/settings/screens/app_lock_settings_screen.dart';
 import '../../features/auth/screens/app_lock_verify_screen.dart';
+import '../../features/contacts/screens/add_contact_screen.dart';
+import '../../features/settings/screens/blocked_contacts_screen.dart';
+import '../../data/providers/settings_provider.dart';
+
+
 
 
 final isAppUnlockedProvider = StateProvider<bool>((ref) => false);
@@ -40,6 +45,21 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final path = state.uri.path;
       if (path == '/' || path.isEmpty) return '/splash';
+
+      // App Lock Redirect Logic
+      final appLockEnabled = ref.read(appLockEnabledProvider);
+      final isAppUnlocked = ref.read(isAppUnlockedProvider);
+      
+      final isAuthPath = path == '/login' || 
+                         path == '/signup' || 
+                         path == '/otp' || 
+                         path == '/splash' ||
+                         path == '/app-lock-verify';
+
+      if (appLockEnabled && !isAppUnlocked && !isAuthPath) {
+        return '/app-lock-verify';
+      }
+
       return null;
     },
     routes: [
@@ -142,7 +162,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const NewChatScreen(),
       ),
       GoRoute(
+        path: '/add-contact',
+        name: 'add-contact',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AddContactScreen(),
+      ),
+      GoRoute(
         path: '/new-group',
+
         name: 'new-group',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const NewGroupScreen(),
@@ -163,7 +190,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/settings/privacy',
         name: 'privacy',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const PrivacySettingsScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: const PrivacySettingsScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) => FadeTransition(opacity: animation, child: child),
+          transitionDuration: const Duration(milliseconds: 200),
+        ),
       ),
       GoRoute(
         path: '/security',
@@ -175,7 +206,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/app-lock-settings',
         name: 'app-lock-settings',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const AppLockSettingsScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: const AppLockSettingsScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) => FadeTransition(opacity: animation, child: child),
+          transitionDuration: const Duration(milliseconds: 200),
+        ),
       ),
       GoRoute(
         path: '/app-lock-verify',
@@ -189,6 +224,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const NotificationsScreen(),
       ),
+      GoRoute(
+        path: '/blocked-contacts',
+        name: 'blocked-contacts',
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: const BlockedContactsScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) => FadeTransition(opacity: animation, child: child),
+          transitionDuration: const Duration(milliseconds: 200),
+        ),
+      ),
+
     ],
   );
 });

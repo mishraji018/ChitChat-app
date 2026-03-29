@@ -1,10 +1,13 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'storage_service.dart';
+import '../services/storage_service.dart';
+import '../../data/models/chat_model.dart';
 
 class ApiService {
-  static const _baseUrl = 'http://10.0.2.2:5000/api'; // Android emulator
-  // static const _baseUrl = 'http://localhost:5000/api'; // Chrome / Web
+  static const String _baseUrl = kIsWeb
+      ? 'http://localhost:5000/api'
+      : 'http://10.0.2.2:5000/api';
 
   late final Dio _dio;
 
@@ -30,6 +33,7 @@ class ApiService {
     ));
   }
 
+  // Generic Rest Helpers (required by repositories)
   Future<Response> get(String path, {Map<String, dynamic>? queryParameters}) {
     return _dio.get(path, queryParameters: queryParameters);
   }
@@ -90,26 +94,44 @@ class ApiService {
   }
 
   Future<void> logout() async {
-    await _dio.post('/auth/logout');
+    try {
+      await _dio.post('/auth/logout');
+    } catch (_) {}
+  }
+
+  // ── CHATS (ERROR 1 FIX) ───────────────────────────────────────
+
+  Future<List<ChatModel>> getChats() async {
+    try {
+      final res = await _dio.get('/chats');
+      final list = res.data['chats'] as List<dynamic>? ?? [];
+      return list
+          .map((e) => ChatModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      debugPrint('getChats Error: $e');
+      return [];
+    }
   }
 
   // ── PRIVACY ───────────────────────────────────────────────────
 
   Future<Map<String, dynamic>> getPrivacySettings() async {
     final res = await _dio.get('/privacy');
-    return res.data['privacySettings'] as Map<String, dynamic>;
+    return (res.data['privacySettings'] ?? {}) as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> updatePrivacySettings(Map<String, dynamic> fields) async {
+  Future<Map<String, dynamic>> updatePrivacySettings(
+      Map<String, dynamic> fields) async {
     final res = await _dio.put('/privacy', data: fields);
-    return res.data['privacySettings'] as Map<String, dynamic>;
+    return (res.data['privacySettings'] ?? {}) as Map<String, dynamic>;
   }
 
   // ── ACCOUNT ───────────────────────────────────────────────────
 
   Future<Map<String, dynamic>> getAccountInfo() async {
     final res = await _dio.get('/account');
-    return res.data['account'] as Map<String, dynamic>;
+    return (res.data['account'] ?? {}) as Map<String, dynamic>;
   }
 
   Future<void> updateEmail(String email) async {
@@ -134,6 +156,34 @@ class ApiService {
 
   Future<void> deleteAccount() async {
     await _dio.delete('/account', data: {'confirmText': 'DELETE'});
+  }
+
+  // ── CONTACTS ──────────────────────────────────────────────────
+  
+  Future<Map<String, dynamic>> addContact({
+    required String name,
+    required String phone,
+    String? avatar,
+  }) async {
+    final res = await _dio.post('/users/contacts', data: {
+      'name': name,
+      'phone': phone,
+      'avatar': avatar,
+    });
+    return res.data;
+  }
+
+  Future<List<dynamic>> getBlockedUsers() async {
+    final res = await _dio.get('/users/blocked');
+    return res.data['data'] ?? [];
+  }
+
+  Future<void> blockUser(String userId) async {
+    await _dio.put('/users/block/$userId');
+  }
+
+  Future<void> unblockUser(String userId) async {
+    await _dio.put('/users/unblock/$userId');
   }
 }
 

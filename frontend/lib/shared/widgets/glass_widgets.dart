@@ -55,7 +55,7 @@ class _Blob extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipOval(
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 60, sigmaY: 60),
+        filter: ImageFilter.blur(sigmaX: 35, sigmaY: 35),
         child: Container(width: size, height: size, color: color),
       ),
     );
@@ -93,21 +93,25 @@ class GlassCard extends StatelessWidget {
         ? Colors.white.withValues(alpha: 0.08) // More subtle border for black mode
         : Colors.white.withValues(alpha: 0.85);
 
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-          child: Container(
-            width: double.infinity,
-            padding: padding,
-            decoration: BoxDecoration(
-              color: bg,
-              borderRadius: BorderRadius.circular(radius),
-              border: Border.all(color: border, width: 1),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8, tileMode: TileMode.decal),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(radius),
+            child: Container(
+              width: double.infinity,
+              padding: padding,
+              decoration: BoxDecoration(
+                color: bg,
+                borderRadius: BorderRadius.circular(radius),
+                border: Border.all(color: border, width: 1),
+              ),
+              child: child,
             ),
-            child: child,
           ),
         ),
       ),
@@ -128,7 +132,7 @@ PreferredSizeWidget glassAppBar({
     preferredSize: const Size.fromHeight(kToolbarHeight),
     child: ClipRect(
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
         child: AppBar(
           title: Text(title, style: titleStyle ?? const TextStyle(fontWeight: FontWeight.bold)),
           backgroundColor: isDark

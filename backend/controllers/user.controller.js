@@ -156,3 +156,67 @@ exports.unmuteConversation = async (req, res, next) => {
     next(err);
   }
 };
+
+// @desc    Add a new contact
+// @route   POST /api/users/contacts
+// @access  Private
+exports.addContact = async (req, res, next) => {
+  try {
+    const { name, phone, avatar } = req.body;
+
+    if (!name || !phone) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name and phone number are required'
+      });
+    }
+
+    // Find if the contact already exists on ChitChat
+    const existingUser = await User.findOne({ phone: phone.replaceAll(' ', '') });
+
+    const newContact = {
+      name,
+      phone,
+      avatar,
+      user: existingUser ? existingUser._id : null
+    };
+
+    // Add to contacts array (avoid duplicates if phone is same)
+    const user = await User.findById(req.user.id);
+    const alreadyExists = user.contacts.find(c => c.phone === phone);
+    
+    if (alreadyExists) {
+      return res.status(400).json({
+        success: false,
+        message: 'Contact with this phone number already exists'
+      });
+    }
+
+    user.contacts.push(newContact);
+    await user.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Contact added successfully',
+      data: newContact
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Get blocked users
+// @route   GET /api/users/blocked
+// @access  Private
+exports.getBlockedUsers = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id).populate('blockedUsers', 'name phone avatar status isOnline lastSeen');
+    
+    res.status(200).json({
+      success: true,
+      data: user.blockedUsers
+    });
+  } catch (err) {
+    next(err);
+  }
+};

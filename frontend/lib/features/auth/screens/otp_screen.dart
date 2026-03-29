@@ -28,8 +28,12 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   @override
   void dispose() {
     _timer?.cancel();
-    for (final c in _ctrl) c.dispose();
-    for (final f in _focus) f.dispose();
+    for (final c in _ctrl) {
+      c.dispose();
+    }
+    for (final f in _focus) {
+      f.dispose();
+    }
     super.dispose();
   }
 
@@ -101,7 +105,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
           child: Column(
             children: [
               const SizedBox(height: 24),
-              Text('📬', style: TextStyle(fontSize: 64)),
+              const Text('📬', style: TextStyle(fontSize: 64)),
               const SizedBox(height: 16),
               Text('Check your email',
                   style: theme.textTheme.headlineSmall
