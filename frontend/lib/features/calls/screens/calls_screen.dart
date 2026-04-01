@@ -175,7 +175,16 @@ class _CallTile extends StatelessWidget {
     }
 
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Calling ${call.contactName} — Coming Soon 🚀'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
@@ -218,7 +227,16 @@ class _CallTile extends StatelessWidget {
                 color: colorScheme.primary,
                 size: 20,
               ),
-              onPressed: () {},
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('${call.type == CallType.video ? 'Video' : 'Audio'} Call — Coming Soon 🚀'),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
             ),
           ],
         ),

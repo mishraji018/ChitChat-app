@@ -111,8 +111,8 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
                 ],
               ),
               backgroundColor: isDark
-                  ? Colors.black.withOpacity(0.45)
-                  : Colors.white.withOpacity(0.55),
+                  ? Colors.black.withValues(alpha: 0.45)
+                  : Colors.white.withValues(alpha: 0.55),
               elevation: 0,
               actions: [
                 if (selectedIndex != 2 && selectedIndex != 3)
@@ -272,14 +272,14 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Container(
             decoration: BoxDecoration(
-              color: isDark ? Colors.white.withOpacity(0.07) : Colors.white.withOpacity(0.65),
-              border: Border(top: BorderSide(color: isDark ? Colors.white.withOpacity(0.1) : Colors.white.withOpacity(0.9), width: 0.5)),
+              color: isDark ? Colors.white.withValues(alpha: 0.07) : Colors.white.withValues(alpha: 0.65),
+              border: Border(top: BorderSide(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.9), width: 0.5)),
             ),
             child: BottomNavigationBar(
               backgroundColor: Colors.transparent,
               type: BottomNavigationBarType.fixed,
               selectedItemColor: colorScheme.primary,
-              unselectedItemColor: colorScheme.secondary.withOpacity(0.5),
+              unselectedItemColor: colorScheme.secondary.withValues(alpha: 0.5),
               elevation: 0,
               currentIndex: selectedIndex,
               onTap: (index) => _onItemTapped(index, context),

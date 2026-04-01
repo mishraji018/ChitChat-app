@@ -8,6 +8,17 @@ import '../../../../shared/widgets/glass_widgets.dart';
 class ContactsScreen extends ConsumerWidget {
   const ContactsScreen({super.key});
 
+  void _comingSoon(BuildContext context, String feature) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$feature — Coming Soon 🚀'),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -42,7 +53,7 @@ class ContactsScreen extends ConsumerWidget {
                           if (index == 0) {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 16),
-                              child: _buildInviteBanner(colorScheme, isDark),
+                              child: _buildInviteBanner(context, colorScheme, isDark),
                             );
                           }
 
@@ -120,7 +131,7 @@ class ContactsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInviteBanner(ColorScheme colorScheme, bool isDark) {
+  Widget _buildInviteBanner(BuildContext context, ColorScheme colorScheme, bool isDark) {
     return GlassCard(
       isDark: isDark,
       padding: const EdgeInsets.all(16),
@@ -146,7 +157,7 @@ class ContactsScreen extends ConsumerWidget {
             ),
           ),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () => _comingSoon(context, 'Invite friends'),
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.primary,
               foregroundColor: Colors.white,

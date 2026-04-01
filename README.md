@@ -1,114 +1,83 @@
-# 💬 ChitChat App
+# 🐻 ChitChat App
 
-A modern real-time messaging and calling application built using **Flutter & Dart**, designed to deliver a seamless communication experience similar to popular chat applications.
+> [!NOTE]
+> **Project Status:** Under Active Development 🚀
+
+A premium, secure real-time messaging application with **Phone-based SMS OTP Authentication**. 
+
+Built with **Flutter** for the mobile experience and **Node.js** for a robust, scalable backend.
 
 ---
 
 ## 🚀 Features
 
-* 🔐 User Authentication (Login / Signup / OTP)
-* 💬 Real-time 1-to-1 Messaging
-* 🟢 Online / Offline Status
-* ✔️ Message Status (Sent / Delivered / Seen)
-* 📞 Voice Calling (Planned)
-* 🎥 Video Calling (Planned)
-* 🖼️ Media Sharing (Images, Audio) *(Upcoming)*
-* 🔔 Push Notifications *(Upcoming)*
-
----
-
-## 🛠️ Tech Stack
-
-* **Frontend:** Flutter (Dart)
-* **Backend:** Firebase / Node.js (Planned)
-* **Database:** Firestore / MongoDB (Planned)
-* **Real-time:** WebSockets / Firebase Realtime DB
-* **Calling:** WebRTC (Planned)
+*   📱 **Phone Number Login**: Secure authentication using 6-digit OTP codes.
+*   ⚡ **SMS Auto-Fill**: Automatically detects and fills your OTP on Android using the SMS Retriever API.
+*   💬 **Real-time Chatting**: Instant message delivery powered by Socket.io.
+*   ☁️ **Cloud Database**: Integrated with MongoDB Atlas for persistent storage.
+*   🧪 **Developer Friendly**: Easily run the entire stack locally for testing.
 
 ---
 
 ## 📂 Project Structure
 
-```
-chitchat-app/
- ├── android/           # Android platform files
- ├── ios/               # iOS platform files
- ├── lib/               # Frontend (Flutter) Source Code
- │    ├── core/         # Core services, routing, and constants
- │    ├── data/         # Data providers, models, and repositories
- │    ├── features/     # Feature-based screens and logic
- │    └── shared/       # Reusable UI widgets and components
- ├── assets/            # App assets (images, fonts)
- ├── backend/           # Node.js Server & Logic
- └── pubspec.yaml       # Project configuration
-```
+*   **/frontend**: Flutter mobile application.
+*   **/backend**: Node.js / Express server and Socket.io controller.
 
 ---
 
-## 🔒 Security & Performance (Latest Updates)
+## 🛠️ Local Setup Guide
 
-### 1. App Lock & Privacy
-- **Secure Sequential Lock**: PIN verification followed by optional Fingerprint/Biometric scan.
-- **Blocked Contacts**: Centralized management screen to block/unblock users with real-time backend sync.
-- **Global Protection**: App-wide redirect logic prevents unauthorized access when locked.
+Follow these steps to run the app on your local machine:
 
-### 2. High Performance Rendering
-- **Optimized Glassmorphism**: Fine-tuned blur sigmas for high FPS and smooth scrolling.
-- **Snappy Transitions**: Custom 200ms fade transitions for an "instant" navigation feel.
-- **Improved Startup**: Reduced splash screen duration by 60% for faster app entry.
+### 1. Backend Setup
+1.  Navigate to the `backend` folder: `cd backend`
+2.  Install dependencies: `npm install`
+3.  Configure your environment:
+    *   Rename `.env.example` to **`.env`** (if not already there).
+    *   Update **`MONGODB_URI`** with your MongoDB Atlas connection string.
+    *   Ensure the username and password in the link match your Atlas configuration.
+4.  Launch the server:
+    ```powershell
+    npm run dev
+    ```
+    *The terminal should say:* `✅ MongoDB Connected`
 
----
-
-## 📸 Screenshots
-
-*(Add your app screenshots here)*
-
----
-
-## ⚙️ Installation & Setup
-
-1. Clone the repository:
-
-```
-git clone https://github.com/mishraji018/ChitChat-app.git
-```
-
-2. Navigate to project folder:
-
-```
-cd ChitChat-app
-```
-
-3. Install dependencies:
-
-```
-flutter pub get
-```
-
-4. Run the app:
-
-```
-flutter run
-```
+### 2. Frontend Setup
+1.  Navigate to the `frontend` folder: `cd frontend`
+2.  Install Flutter packages: 
+    ```powershell
+    flutter pub get
+    ```
+3.  **Configure API Endpoint**:
+    *   Open `lib/services/v2/api_service.dart`.
+    *   For **Android Emulator**, use: `http://10.0.2.2:5000`
+    *   For **Real Devices**, use your computer's local IP (e.g., `http://192.168.1.5:5000`).
+4.  Run the app:
+    ```powershell
+    flutter run
+    ```
 
 ---
 
-## 🎯 Future Enhancements
+## 🔑 SMS OTP Testing
 
-* 🔒 End-to-End Encryption
-* 👥 Group Chats
-* 📁 File Sharing
-* 🌙 Dark Mode Optimization
-* ☁️ Cloud Sync
+Since the backend is running locally, it does not send "real" carrier SMS. 
 
----
-
-## 🤝 Contribution
-
-Contributions are welcome! Feel free to fork this repo and submit a pull request.
+1.  Enter your phone number in the app and click **Login**.
+2.  Go to your **Backend terminal** (where `npm run dev` is running).
+3.  You will see a message like: 
+    `[SMS] <#> Your ChitChat OTP is: 123456 [APP_HASH]`
+4.  Type the 6-digit code into the app. On many Android devices, it will be automatically detected!
 
 ---
 
-## 📌 Status
+## 🛡️ Requirements
+*   **Node.js**: v18 or later recommended.
+*   **Flutter**: Stable channel.
+*   **Database**: MongoDB Atlas (Free Tier works great).
+*   **Android Device/Emulator**: Recommended for full SMS Auto-fill support.
 
-🚧 **This project is currently under development.**
+---
+
+*Made with ❤️ for premium messaging.*

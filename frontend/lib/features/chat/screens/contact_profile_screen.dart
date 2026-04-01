@@ -286,7 +286,7 @@ class ContactProfileScreen extends ConsumerWidget {
       trailing: Switch.adaptive(
         value: value,
         onChanged: onChanged,
-        activeColor: colorScheme.primary,
+        activeTrackColor: colorScheme.primary,
       ),
     );
   }

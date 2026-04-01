@@ -20,6 +20,7 @@ const accountRoutes = require('./routes/accountRoutes');
 dotenv.config();
 
 // Connect to Database
+console.log('DEBUG: MONGODB_URI found:', process.env.MONGODB_URI ? 'YES (Starts with ' + process.env.MONGODB_URI.substring(0, 10) + '...)' : 'NO');
 connectDB();
 
 const app = express();

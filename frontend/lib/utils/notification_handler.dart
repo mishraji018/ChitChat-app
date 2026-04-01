@@ -29,7 +29,7 @@ void playRingtone(String tone) {
 
 // Vibration
 void triggerVibration() async {
-  if (await Vibration.hasVibrator() ?? false) {
+  if (await Vibration.hasVibrator()) {
     Vibration.vibrate(duration: 500);
   }
 }

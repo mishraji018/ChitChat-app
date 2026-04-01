@@ -30,23 +30,24 @@ exports.register = async (req, res, next) => {
       });
     }
 
-    // In production, send via SMS/Email. For now, log to console.
-    console.log(`OTP for ${phone}: ${otp}`);
+    // For SMS Retriever API (sms_autofill), the format must be specific.
+    // In production, send via actual SMS provider.
+    // Replace <APP_HASH> with the hash generated from your Android app.
+    console.log(`
+    --------------------------------------------------
+    📩 SMS SENT TO: ${phone}
+    Message: <#> Your ChitChat OTP is: ${otp} 
+    [APP_HASH_HERE]
+    --------------------------------------------------
+    `);
     
-    // Optionally send email if provided
-    if (email) {
-      await sendEmail({
-        email,
-        subject: 'ChitChat Verification Code',
-        message: `Your verification code is: ${otp}`,
-        html: `<h1>Welcome to ChitChat</h1><p>Your verification code is: <b>${otp}</b></p>`
-      });
-    }
+    // Also log for easy lookup
+    console.log(`Backend Console LOG: OTP for ${phone} is ${otp}`);
 
     res.status(200).json({
       success: true,
       message: 'OTP sent successfully',
-      data: { phone }
+      otp: otp // Returning OTP in response for easier testing during development
     });
   } catch (err) {
     next(err);

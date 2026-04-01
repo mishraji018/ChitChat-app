@@ -1,8 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/services/socket_service.dart';
-import '../../../core/services/storage_service.dart';
+import '../../../providers/v3/auth_provider.dart';
 import '../../../../shared/widgets/glass_widgets.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -43,16 +43,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   Future<void> _navigateToNext() async {
-    final token = await StorageService.getToken();
-    if (token != null) {
-      SocketService.connect(token);
-    } else {
-      SocketService.connect('dummy_token');
-    }
+    await Future.delayed(const Duration(milliseconds: 2500));
+    if (!mounted) return;
 
-    await Future.delayed(const Duration(milliseconds: 1200));
-    if (mounted) {
+    // Use our new AuthProvider to check if we are logged in
+    final auth = context.read<AuthProvider>();
+    
+    if (auth.isLoggedIn) {
       context.go('/home/chats');
+    } else {
+      context.go('/login');
     }
   }
 

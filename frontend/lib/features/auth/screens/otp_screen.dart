@@ -1,21 +1,20 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../../../data/providers/auth_provider.dart';
+import 'package:sms_autofill/sms_autofill.dart';
+import '../../../providers/v3/auth_provider.dart';
 
-class OtpScreen extends ConsumerStatefulWidget {
-  const OtpScreen({super.key});
+class OtpScreen extends StatefulWidget {
+  final String phone;
+  const OtpScreen({super.key, required this.phone});
 
   @override
-  ConsumerState<OtpScreen> createState() => _OtpScreenState();
+  State<OtpScreen> createState() => _OtpScreenState();
 }
 
-class _OtpScreenState extends ConsumerState<OtpScreen> {
-  final List<TextEditingController> _ctrl =
-      List.generate(6, (_) => TextEditingController());
-  final List<FocusNode> _focus = List.generate(6, (_) => FocusNode());
-
+class _OtpScreenState extends State<OtpScreen> with CodeAutoFill {
+  final TextEditingController _otpCtrl = TextEditingController();
   int _resendSeconds = 60;
   Timer? _timer;
 
@@ -23,17 +22,25 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   void initState() {
     super.initState();
     _startTimer();
+    listenForCode(); // Start listening for SMS
+  }
+
+  @override
+  void codeUpdated() {
+    // This is called when an SMS with the app hash is received
+    setState(() {
+      _otpCtrl.text = code ?? '';
+    });
+    if (_otpCtrl.text.length == 6) {
+      _verify();
+    }
   }
 
   @override
   void dispose() {
     _timer?.cancel();
-    for (final c in _ctrl) {
-      c.dispose();
-    }
-    for (final f in _focus) {
-      f.dispose();
-    }
+    _otpCtrl.dispose();
+    cancel(); // Stop listening for SMS
     super.dispose();
   }
 
@@ -49,32 +56,31 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     });
   }
 
-  String get _otp => _ctrl.map((c) => c.text).join();
-
   Future<void> _verify() async {
-    if (_otp.length < 6) {
+    final otp = _otpCtrl.text;
+    if (otp.length < 6) {
       _snack('Enter the full 6-digit OTP');
       return;
     }
 
-    final ok = await ref.read(authProvider.notifier).verifyOtp(_otp);
-    if (ok && mounted) context.go('/home/chats');
+    final auth = context.read<AuthProvider>();
+    final ok = await auth.verifyOtp(phone: widget.phone, otp: otp);
+    
+    if (ok && mounted) {
+      context.go('/home/chats');
+    } else if (mounted) {
+      _snack(auth.error ?? 'Verification failed');
+    }
   }
 
   Future<void> _resend() async {
-    await ref.read(authProvider.notifier).resendOtp();
-    _snack('OTP resent to your email');
-    _startTimer();
-  }
-
-  void _onDigitChanged(String value, int index) {
-    if (value.isNotEmpty && index < 5) {
-      _focus[index + 1].requestFocus();
+    final auth = context.read<AuthProvider>();
+    final ok = await auth.register(name: 'User', phone: widget.phone);
+    if (ok) {
+      _snack('OTP resent to ${widget.phone}');
+      _startTimer();
+      listenForCode();
     }
-    if (value.isEmpty && index > 0) {
-      _focus[index - 1].requestFocus();
-    }
-    setState(() {});
   }
 
   void _snack(String msg) {
@@ -88,64 +94,49 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final auth = ref.watch(authProvider);
-
-    ref.listen<AuthState>(authProvider, (_, next) {
-      if (next.error != null) {
-        _snack(next.error!);
-        ref.read(authProvider.notifier).clearError();
-      }
-    });
+    final auth = context.watch<AuthProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Verify Email'), elevation: 0),
+      appBar: AppBar(title: const Text('Verify Phone'), elevation: 0),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
           child: Column(
             children: [
               const SizedBox(height: 24),
-              const Text('📬', style: TextStyle(fontSize: 64)),
+              const Text('📱', style: TextStyle(fontSize: 64)),
               const SizedBox(height: 16),
-              Text('Check your email',
+              Text('Verify your number',
                   style: theme.textTheme.headlineSmall
                       ?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               Text(
-                'Enter the 6-digit OTP sent to your email address.',
+                'Enter the 6-digit OTP sent to\n${widget.phone}',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium
                     ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 40),
 
-              // OTP boxes
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(6, (i) {
-                  return SizedBox(
-                    width: 46,
-                    height: 56,
-                    child: TextField(
-                      controller: _ctrl[i],
-                      focusNode: _focus[i],
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      maxLength: 1,
-                      style: theme.textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                      decoration: InputDecoration(
-                        counterText: '',
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      onChanged: (v) => _onDigitChanged(v, i),
-                    ),
-                  );
-                }),
+              // OTP input field with Auto-fill support
+              PinFieldAutoFill(
+                controller: _otpCtrl,
+                decoration: UnderlineDecoration(
+                  textStyle: theme.textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                  colorBuilder: FixedColorBuilder(theme.colorScheme.primary),
+                ),
+                currentCode: _otpCtrl.text,
+                onCodeSubmitted: (code) => _verify(),
+                onCodeChanged: (code) {
+                  if (code?.length == 6) {
+                    _verify();
+                  }
+                },
+                codeLength: 6,
               ),
-              const SizedBox(height: 32),
+              
+              const SizedBox(height: 40),
 
               SizedBox(
                 width: double.infinity,
@@ -159,12 +150,12 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                           child: CircularProgressIndicator(
                               strokeWidth: 2, color: Colors.white),
                         )
-                      : const Text('Verify', style: TextStyle(fontSize: 16)),
+                      : const Text('Verify & Login', style: TextStyle(fontSize: 16)),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
-              // Resend
+              // Resend timer
               _resendSeconds > 0
                   ? Text(
                       'Resend OTP in ${_resendSeconds}s',
@@ -175,6 +166,12 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                       onPressed: _resend,
                       child: const Text('Resend OTP'),
                     ),
+                    
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => context.pop(),
+                child: const Text('Edit Phone Number'),
+              ),
             ],
           ),
         ),

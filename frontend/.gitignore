@@ -51,3 +51,9 @@ android/build/
 # Logs (important)
 *.txt
 *.log
+
+.env
+node_modules/
+build/
+.dart_tool/
+*.log

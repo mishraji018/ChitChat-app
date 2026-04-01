@@ -52,7 +52,7 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
                         ),
                         filled: true,
                         fillColor: theme.colorScheme.surfaceContainerHighest
-                            .withOpacity(0.5),
+                            .withValues(alpha: 0.5),
                         contentPadding: const EdgeInsets.symmetric(vertical: 0),
                       ),
                     ),

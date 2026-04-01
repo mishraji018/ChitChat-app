@@ -85,7 +85,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/otp',
         name: 'otp',
-        builder: (context, state) => const OtpScreen(),
+        builder: (context, state) {
+          final phone = state.extra as String? ?? '';
+          return OtpScreen(phone: phone);
+        },
       ),
       GoRoute(
         path: '/forgot-passkey',

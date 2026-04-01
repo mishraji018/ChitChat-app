@@ -293,32 +293,57 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ),
       ),
       actions: [
-        IconButton(icon: const Icon(Icons.videocam_outlined), onPressed: () {}),
-        IconButton(icon: const Icon(Icons.phone_outlined), onPressed: () {}),
+        IconButton(
+          icon: const Icon(Icons.videocam_outlined),
+          onPressed: () => _comingSoon(context, 'Video Call'),
+        ),
+        IconButton(
+          icon: const Icon(Icons.phone_outlined),
+          onPressed: () => _comingSoon(context, 'Audio Call'),
+        ),
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert),
           onSelected: (val) {
-            if (val == 'view') {
-              context.push(
-                '/contact-info/${widget.receiverId}',
-                extra: {
-                  'conversationId': widget.conversationId,
-                  'name': 'Contact',
-                  'avatar': '',
-                  'about': 'Hey there! I am using ChitChat.',
-                },
-              );
+            switch (val) {
+              case 'view':
+                context.push(
+                  '/contact-info/${widget.receiverId ?? widget.conversationId}',
+                  extra: {
+                    'conversationId': widget.conversationId,
+                    'name': 'Contact',
+                    'avatar': '',
+                    'about': 'Hey there! I am using ChitChat.',
+                  },
+                );
+                break;
+              case 'search':
+                _comingSoon(context, 'Search messages');
+                break;
+              case 'mute':
+                _comingSoon(context, 'Mute notifications');
+                break;
+              case 'wallpaper':
+                _comingSoon(context, 'Wallpaper');
+                break;
+              case 'clear':
+                _showClearChatDialog(context);
+                break;
+              case 'block':
+                _showBlockDialog(context);
+                break;
+              case 'report':
+                _comingSoon(context, 'Report');
+                break;
             }
           },
-          itemBuilder: (context) => [
-            const PopupMenuItem(value: 'view', child: Text('View Contact')),
-            const PopupMenuItem(value: 'media', child: Text('Media, Links, Docs')),
-            const PopupMenuItem(value: 'search', child: Text('Search')),
-            const PopupMenuItem(value: 'mute', child: Text('Mute Notifications')),
-            const PopupMenuItem(value: 'wallpaper', child: Text('Wallpaper')),
-            const PopupMenuItem(value: 'clear', child: Text('Clear Chat')),
-            const PopupMenuItem(value: 'block', child: Text('Block')),
-            const PopupMenuItem(value: 'report', child: Text('Report')),
+          itemBuilder: (context) => const [
+            PopupMenuItem(value: 'view', child: Text('View Contact')),
+            PopupMenuItem(value: 'search', child: Text('Search')),
+            PopupMenuItem(value: 'mute', child: Text('Mute Notifications')),
+            PopupMenuItem(value: 'wallpaper', child: Text('Wallpaper')),
+            PopupMenuItem(value: 'clear', child: Text('Clear Chat')),
+            PopupMenuItem(value: 'block', child: Text('Block')),
+            PopupMenuItem(value: 'report', child: Text('Report')),
           ],
         ),
       ],
@@ -376,6 +401,60 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ),
     );
   }
+
+  void _comingSoon(BuildContext context, String feature) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$feature — Coming Soon 🚀'),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _showClearChatDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Clear Chat'),
+        content: const Text('This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBlockDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Block Contact'),
+        content: const Text('This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Widget _buildScrollToBottomButton() {
     final show = ref.watch(showScrollToBottomProvider);
@@ -951,7 +1030,7 @@ class _ChatInputBarState extends ConsumerState<_ChatInputBar> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
+      builder: (ctx) => Container(
         margin: const EdgeInsets.all(16),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
@@ -964,33 +1043,46 @@ class _ChatInputBarState extends ConsumerState<_ChatInputBar> {
           mainAxisSpacing: 24,
           crossAxisSpacing: 24,
           children: [
-            _buildAttachmentItem(Icons.insert_drive_file, 'Document', Colors.indigo, colorScheme),
-            _buildAttachmentItem(Icons.camera_alt, 'Camera', Colors.pink, colorScheme),
-            _buildAttachmentItem(Icons.image, 'Gallery', Colors.purple, colorScheme),
-            _buildAttachmentItem(Icons.headset, 'Audio', Colors.orange, colorScheme),
-            _buildAttachmentItem(Icons.location_on, 'Location', Colors.green, colorScheme),
-            _buildAttachmentItem(Icons.person, 'Contact', Colors.blue, colorScheme),
+            _buildAttachmentItem(ctx, Icons.insert_drive_file, 'Document', Colors.indigo, colorScheme),
+            _buildAttachmentItem(ctx, Icons.camera_alt, 'Camera', Colors.pink, colorScheme),
+            _buildAttachmentItem(ctx, Icons.image, 'Gallery', Colors.purple, colorScheme),
+            _buildAttachmentItem(ctx, Icons.headset, 'Audio', Colors.orange, colorScheme),
+            _buildAttachmentItem(ctx, Icons.location_on, 'Location', Colors.green, colorScheme),
+            _buildAttachmentItem(ctx, Icons.person, 'Contact', Colors.blue, colorScheme),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAttachmentItem(IconData icon, String label, Color color, ColorScheme colorScheme) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
+  Widget _buildAttachmentItem(BuildContext ctx, IconData icon, String label, Color color, ColorScheme colorScheme) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(ctx);
+        ScaffoldMessenger.of(ctx).showSnackBar(
+          SnackBar(
+            content: Text('$label — Coming Soon 🚀'),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            duration: const Duration(seconds: 2),
           ),
-          child: Icon(icon, color: color),
-        ),
-        const SizedBox(height: 8),
-        Text(label, style: TextStyle(color: colorScheme.onSurface, fontSize: 12)),
-      ],
+        );
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color),
+          ),
+          const SizedBox(height: 8),
+          Text(label, style: TextStyle(color: colorScheme.onSurface, fontSize: 12)),
+        ],
+      ),
     );
   }
 }

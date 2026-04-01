@@ -19,10 +19,7 @@ class SoundService {
       return;
     }
 
-    _player.play(
-      android: AndroidSounds.notification,
-      volume: 0.4,
-    );
+    _player.play(android: AndroidSounds.notification, volume: 0.4);
   }
 
   // Play message received sound
@@ -79,28 +76,16 @@ class SoundService {
   static void _playTone(String tone) {
     switch (tone) {
       case 'Chime':
-        _player.play(
-          android: AndroidSounds.notification,
-          volume: 0.8,
-        );
+        _player.play(android: AndroidSounds.notification, volume: 0.8);
         break;
       case 'Bell':
-        _player.play(
-          android: AndroidSounds.notification,
-          volume: 0.8,
-        );
+        _player.play(android: AndroidSounds.notification, volume: 0.8);
         break;
       case 'Ping':
-        _player.play(
-          android: AndroidSounds.notification,
-          volume: 0.8,
-        );
+        _player.play(android: AndroidSounds.notification, volume: 0.8);
         break;
       case 'Droplet':
-        _player.play(
-          android: AndroidSounds.notification,
-          volume: 0.8,
-        );
+        _player.play(android: AndroidSounds.notification, volume: 0.8);
         break;
       case 'Default':
         _player.playNotification();
@@ -111,13 +96,13 @@ class SoundService {
   }
 
   static Future<void> _vibrate(int duration) async {
-    if (await Vibration.hasVibrator() ?? false) {
+    if (await Vibration.hasVibrator()) {
       Vibration.vibrate(duration: duration);
     }
   }
 
   static Future<void> _vibratePattern() async {
-    if (await Vibration.hasVibrator() ?? false) {
+    if (await Vibration.hasVibrator()) {
       Vibration.vibrate(
         pattern: [0, 500, 200, 500, 200, 500],
         intensities: [0, 255, 0, 255, 0, 255],
