@@ -118,16 +118,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Dev Mode Bypass
-                OutlinedButton.icon(
-                  onPressed: () => context.go('/home/chats'),
-                  icon: const Icon(Icons.developer_mode, size: 16),
-                  label: const Text('Dev Mode — Skip Login'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: theme.colorScheme.onSurfaceVariant,
-                    side: BorderSide(color: theme.colorScheme.outline),
-                  ),
-                ),
                 const SizedBox(height: 32),
               ],
             ),

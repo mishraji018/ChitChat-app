@@ -94,7 +94,7 @@ class AuthProvider extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('current_user', jsonEncode(_user));
 
-      // Connect socket after login
+      // 🔌 Connect socket after login
       await SocketService.instance.connect();
 
       _clearError();

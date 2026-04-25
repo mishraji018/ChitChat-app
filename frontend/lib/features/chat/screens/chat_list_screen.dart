@@ -1,22 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../../../data/providers/chat_provider.dart';
+import '../../../providers/v3/chat_provider.dart';
 import '../../../data/models/chat_model.dart';
+import '../../../providers/v3/auth_provider.dart';
 
-class ChatListScreen extends ConsumerStatefulWidget {
+class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
 
   @override
-  ConsumerState<ChatListScreen> createState() => _ChatListScreenState();
+  State<ChatListScreen> createState() => _ChatListScreenState();
 }
 
-class _ChatListScreenState extends ConsumerState<ChatListScreen> {
+class _ChatListScreenState extends State<ChatListScreen> {
   String _filter = 'All';
   String _search = '';
   final _searchCtrl = TextEditingController();
 
   final _filters = ['All', 'Unread', 'Pinned', 'Archived'];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ChatProvider>().loadChats();
+    });
+  }
 
   @override
   void dispose() {
@@ -27,7 +36,10 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final asyncChats = ref.watch(chatProvider);
+    final chatProvider = context.watch<ChatProvider>();
+    final chats = chatProvider.chats;
+    final isLoading = chatProvider.isLoading;
+    final error = chatProvider.error;
 
     return Scaffold(
       body: SafeArea(
@@ -90,67 +102,66 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
 
             // Chat list
             Expanded(
-              child: asyncChats.when(
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
-                error: (_, __) => Center(
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    const Icon(Icons.wifi_off_rounded, size: 48),
-                    const SizedBox(height: 12),
-                    const Text('Could not load chats'),
-                    TextButton(
-                      onPressed: () =>
-                          ref.read(chatProvider.notifier).loadChats(),
-                      child: const Text('Retry'),
-                    ),
-                  ]),
-                ),
-                data: (chats) {
-                  // Filter logic
-                  List<ChatModel> filtered = chats;
-
-                  if (_filter == 'Unread') {
-                    filtered = chats.where((c) => c.unreadCount > 0).toList();
-                  }
-
-                  if (_search.isNotEmpty) {
-                    filtered = filtered
-                        .where((c) => c.name.toLowerCase().contains(_search))
-                        .toList();
-                  }
-
-                  if (filtered.isEmpty) {
-                    return Center(
+              child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : error != null
+                  ? Center(
                       child: Column(mainAxisSize: MainAxisSize.min, children: [
-                        Text('💬', style: theme.textTheme.displayMedium),
+                        const Icon(Icons.wifi_off_rounded, size: 48),
                         const SizedBox(height: 12),
-                        Text(
-                          chats.isEmpty
-                              ? 'No chats yet\nStart a new conversation!'
-                              : 'No results found',
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant),
+                        Text(error),
+                        TextButton(
+                          onPressed: () => chatProvider.loadChats(),
+                          child: const Text('Retry'),
                         ),
                       ]),
-                    );
-                  }
-
-                  return RefreshIndicator(
-                    onRefresh: () =>
-                        ref.read(chatProvider.notifier).loadChats(),
-                    child: ListView.separated(
-                      itemCount: filtered.length,
-                      separatorBuilder: (_, __) =>
-                          const Divider(height: 1, indent: 72),
-                      itemBuilder: (_, i) => _ChatTile(chat: filtered[i]),
-                    ),
-                  );
-                },
-              ),
+                    )
+                  : _buildChatList(chats, theme, chatProvider),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildChatList(List<ChatModel> chats, ThemeData theme, ChatProvider chatProvider) {
+    // Filter logic
+    List<ChatModel> filtered = chats;
+
+    if (_filter == 'Unread') {
+      filtered = chats.where((c) => c.unreadCount > 0).toList();
+    }
+
+    if (_search.isNotEmpty) {
+      filtered = filtered
+          .where((c) => c.name.toLowerCase().contains(_search))
+          .toList();
+    }
+
+    if (filtered.isEmpty) {
+      return Center(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text('💬', style: theme.textTheme.displayMedium),
+          const SizedBox(height: 12),
+          Text(
+            chats.isEmpty
+                ? 'No chats yet\nStart a new conversation!'
+                : 'No results found',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant),
+          ),
+        ]),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => chatProvider.loadChats(),
+      child: ListView.separated(
+        itemCount: filtered.length,
+        separatorBuilder: (_, __) =>
+            const Divider(height: 1, indent: 72),
+        itemBuilder: (_, i) => _ChatTile(chat: filtered[i]),
       ),
     );
   }
@@ -246,7 +257,7 @@ class _ChatTile extends StatelessWidget {
             ),
           ),
       ]),
-      onTap: () => context.push('/chat/${chat.id}'),
+      onTap: () => context.push('/chat/${chat.id}', extra: chat.id),
     );
   }
 }

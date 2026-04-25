@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../services/v2/api_service.dart';
 import '../../services/v2/socket_service.dart';
+import '../../data/models/message_model.dart';
+import '../../data/models/chat_model.dart';
+import 'auth_provider.dart'; // To get current userId
+import 'package:provider/provider.dart';
 
 /// Manages chat list + messages for the active conversation.
 /// Use one ChatProvider per conversation screen (via Provider or setState).
@@ -10,16 +14,16 @@ import '../../services/v2/socket_service.dart';
 ///   await chatProvider.loadMessages(conversationId);
 ///   chatProvider.listenToSocket(conversationId);
 class ChatProvider extends ChangeNotifier {
-  List<dynamic> _chats = [];
-  List<dynamic> _messages = [];
+  List<ChatModel> _chats = [];
+  List<MessageModel> _messages = [];
   bool _isLoading = false;
   bool _isSending = false;
   String? _error;
   bool _isTyping = false;
   String? _typingUserName;
 
-  List<dynamic> get chats => _chats;
-  List<dynamic> get messages => _messages;
+  List<ChatModel> get chats => _chats;
+  List<MessageModel> get messages => _messages;
   bool get isLoading => _isLoading;
   bool get isSending => _isSending;
   String? get error => _error;
@@ -32,7 +36,8 @@ class ChatProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      _chats = await ApiService.getChats();
+      final chatsJson = await ApiService.getChats();
+      _chats = chatsJson.map((c) => ChatModel.fromJson(c)).toList();
     } on ApiException catch (e) {
       _error = e.message;
     } finally {
@@ -41,17 +46,19 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
-  Future<Map<String, dynamic>?> createChat(String participantId) async {
+  Future<ChatModel?> createChat(String participantId) async {
     try {
       final data = await ApiService.createChat(participantId);
-      final chat = data['chat'] ?? data;
+      final chatJson = data['chat'] ?? data;
+      final newChat = ChatModel.fromJson(chatJson);
+      
       // Add to list if not already present
-      final exists = _chats.any((c) => c['_id'] == chat['_id']);
+      final exists = _chats.any((c) => c.id == newChat.id);
       if (!exists) {
-        _chats.insert(0, chat);
+        _chats.insert(0, newChat);
         notifyListeners();
       }
-      return chat;
+      return newChat;
     } on ApiException catch (e) {
       _error = e.message;
       notifyListeners();
@@ -59,7 +66,7 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
-  Future<Map<String, dynamic>?> createGroupChat({
+  Future<ChatModel?> createGroupChat({
     required String groupName,
     required List<String> participantIds,
     String? groupAvatar,
@@ -70,10 +77,11 @@ class ChatProvider extends ChangeNotifier {
         participantIds: participantIds,
         groupAvatar: groupAvatar,
       );
-      final chat = data['chat'] ?? data;
-      _chats.insert(0, chat);
+      final chatJson = data['chat'] ?? data;
+      final newChat = ChatModel.fromJson(chatJson);
+      _chats.insert(0, newChat);
       notifyListeners();
-      return chat;
+      return newChat;
     } on ApiException catch (e) {
       _error = e.message;
       notifyListeners();
@@ -87,7 +95,9 @@ class ChatProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      final msgs = await ApiService.getMessages(conversationId, page: page);
+      final msgsJson = await ApiService.getMessages(conversationId, page: page);
+      final msgs = msgsJson.map((m) => MessageModel.fromJson(m)).toList();
+      
       if (page == 1) {
         _messages = msgs.reversed.toList(); // newest last for ListView
       } else {
@@ -101,8 +111,8 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
-  /// Send via Socket (real-time). Optimistically adds message to list.
   void sendMessage({
+    required BuildContext context, // Added context to get userId
     required String conversationId,
     required String text,
     String type = 'text',
@@ -110,6 +120,24 @@ class ChatProvider extends ChangeNotifier {
     String? replyTo,
     int? duration,
   }) {
+    final auth = context.read<AuthProvider>();
+    
+    // 💡 OPTIMISTIC UPDATE: Add to local list immediately
+    final tempMsg = MessageModel(
+      id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
+      senderId: auth.userId,
+      text: text,
+      type: MessageType.values.byName(type),
+      timestamp: DateTime.now(),
+      status: MessageStatus.sent,
+      isMe: true,
+      mediaUrl: mediaUrl,
+      duration: duration,
+    );
+    
+    _messages.add(tempMsg);
+    notifyListeners();
+
     SocketService.instance.sendMessage(
       conversationId: conversationId,
       text: text,
@@ -123,8 +151,9 @@ class ChatProvider extends ChangeNotifier {
   Future<void> editMessage(String messageId, String newText) async {
     try {
       final data = await ApiService.editMessage(messageId, newText);
-      final updated = data['message'] ?? data;
-      final idx = _messages.indexWhere((m) => m['_id'] == messageId);
+      final updatedJson = data['message'] ?? data;
+      final updated = MessageModel.fromJson(updatedJson);
+      final idx = _messages.indexWhere((m) => m.id == messageId);
       if (idx != -1) {
         _messages[idx] = updated;
         notifyListeners();
@@ -138,7 +167,7 @@ class ChatProvider extends ChangeNotifier {
   Future<void> deleteMessage(String messageId) async {
     try {
       await ApiService.deleteMessage(messageId);
-      _messages.removeWhere((m) => m['_id'] == messageId);
+      _messages.removeWhere((m) => m.id == messageId);
       notifyListeners();
     } on ApiException catch (e) {
       _error = e.message;
@@ -175,7 +204,7 @@ class ChatProvider extends ChangeNotifier {
 
     // New incoming message
     SocketService.instance.onNewMessage((data) {
-      _messages.add(data);
+      _messages.add(MessageModel.fromJson(data));
       notifyListeners();
     });
 
@@ -194,9 +223,31 @@ class ChatProvider extends ChangeNotifier {
 
     // Message read/delivered status
     SocketService.instance.onMessageStatus((data) {
-      final status = data['status'];
+      final statusStr = data['status'];
+      final messageId = data['messageId'];
+      final status = MessageStatus.values.byName(statusStr);
+      
+      if (messageId != null) {
+        final idx = _messages.indexWhere((m) => m.id == messageId);
+        if (idx != -1) {
+          _messages[idx] = _messages[idx].copyWith(status: status);
+          notifyListeners();
+        }
+      } else {
+        // Bulk update for room
+        for (var i = 0; i < _messages.length; i++) {
+          if (_messages[i].status != MessageStatus.read) {
+            _messages[i] = _messages[i].copyWith(status: status);
+          }
+        }
+        notifyListeners();
+      }
+    });
+
+    // Listen for room-wide read receipts
+    SocketService.instance.onMessageRead((data) {
       for (var i = 0; i < _messages.length; i++) {
-        _messages[i]['status'] = status;
+        _messages[i] = _messages[i].copyWith(status: MessageStatus.read);
       }
       notifyListeners();
     });
